@@ -22,7 +22,7 @@ function tyltoplist_info() {
 		"website"		=> 'https://github.com/SvePu/TYL-TopList',
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'https://github.com/SvePu',
-		"version"		=> '1.2',
+		"version"		=> '1.3',
 		"compatibility"	=> '16*,18*'
 	);
 }
@@ -46,6 +46,13 @@ function tyltoplist_activate() {
 	$templatearray = array(
         "title" => "tyltoplist_view",
         "template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" with=\"100%\"><thead><tr><td class=\"thead\" colspan=\"4\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong><br /><div class=\"smalltext\">{\$lang->tyltoplist_desc} {\$tlprefix}</div></div></td></tr></thead><tbody><tr><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$lang->table_header_place}</strong></td><td class=\"tcat\" width=\"80%\"><strong>{\$lang->table_header_post}</strong></td><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$tlprefix}</strong></td><td class=\"tcat\" width=\"10%\" style=\"text-align:right;\"><strong>{\$lang->table_header_autor}</strong></td></tr>{\$tlTable}<tr><td class=\"tfoot\" colspan=\"4\"></td></tr></tbody></table>{\$footer}</body></html>",
+				"sid" => -2
+	);
+	$db->insert_query("templates", $templatearray);
+	
+	$templatearray = array(
+        "title" => "tyltoplist_disabled",
+        "template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" with=\"100%\"><thead><tr><td class=\"thead\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong></div></td></tr></thead><tbody><tr></tr><td class=\"trow1\"><div style=\"padding: 15px 5px;\">{\$lang->tyltoplist_disabled}</div></td><tr><td class=\"tfoot\"></td></tr></tbody></table>{\$footer}</body></html>",
 				"sid" => -2
 	);
 	$db->insert_query("templates", $templatearray);
@@ -92,7 +99,8 @@ function tyltoplist_deactivate() {
 	global $db;
 	
 	$templatearray = array(
-        "tyltoplist_view"
+        "tyltoplist_view",
+		"tyltoplist_disabled"
     );
 	$deltemplates = implode("','", $templatearray);
 	$db->delete_query("templates", "title in ('{$deltemplates}')");	
@@ -106,7 +114,7 @@ function tyltoplist_deactivate() {
 function tyltoplist()
 {
 	global $mybb;
-if ($mybb->settings['tyltoplist_enable'] == 1){	
+	
 		if(isset($mybb->input['action']) && ($mybb->input['action'] == "tyltoplist"))
 		{
 			global $settings, $db,$templates,$theme,$headerinclude,$header,$footer,$lang;
@@ -119,10 +127,12 @@ if ($mybb->settings['tyltoplist_enable'] == 1){
 				$tlprefix = $lang->tyltoplist_table_prefix_likes;
 			}
 			
-			$tlTable = "";
 			if ($settings['tyltoplist_limit'] < 1){
 				$settings['tyltoplist_limit'] = 20;
 			}
+			
+		if ($mybb->settings['tyltoplist_enable'] == 1){		
+			$tlTable = "";
 			$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
 								FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
 								LEFT JOIN ".TABLE_PREFIX."posts p ON l.pid = p.pid
@@ -145,12 +155,15 @@ if ($mybb->settings['tyltoplist_enable'] == 1){
 			
 			add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix);
 			eval("\$tyltoplist = \"".$templates->get("tyltoplist_view")."\";");
+		} else {
+			
+			add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix.' - Info');
+			eval("\$tyltoplist = \"".$templates->get("tyltoplist_disabled")."\";");
+		
+		}
 			output_page($tyltoplist);
 			
 			exit();
 		}
-	} else {
-		error_no_permission();
-	}
 }
 ?>
