@@ -19,11 +19,11 @@ function tyltoplist_info() {
 	return array(
 		"name" 			=> $lang->plugin_name,
 		"description" 	=> $lang->plugin_desc,
-		"website"		=> 'http://community.mybb.com/user-91011.html',
+		"website"		=> 'http://community.mybb.com/mods.php?action=view&pid=333',
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'http://community.mybb.com/user-91011.html',
-		"version"		=> '1.0',
-		"compatibility"	=> '18*'
+		"version"		=> '1.1',
+		"compatibility"	=> '16*,18*'
 	);
 }
 
@@ -113,14 +113,14 @@ if ($mybb->settings['tyltoplist_enable'] == 1){
 			
 			$lang->load("tyltoplist");
 			
-			if ($mybb->$settings['g33k_thankyoulike_thankslike'] = "thanks"){
+			if ($settings['g33k_thankyoulike_thankslike'] == "thanks"){
 				$tlprefix = $lang->tyltoplist_table_prefix_thanks;
-			}else{
+			} else {
 				$tlprefix = $lang->tyltoplist_table_prefix_likes;
 			}
 			
 			$tlTable = "";
-			if ($mybb->settings['tyltoplist_limit'] < 1){
+			if ($settings['tyltoplist_limit'] < 1){
 				$settings['tyltoplist_limit'] = 20;
 			}
 			$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
