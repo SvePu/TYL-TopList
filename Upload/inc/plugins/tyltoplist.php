@@ -2,7 +2,7 @@
 /*
 	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Copyright © 2014 Svepu
-	Last change: 2014-12-11
+	Last change: 2014-12-12
 */
 
 if(!defined('IN_MYBB')) {
@@ -19,10 +19,10 @@ function tyltoplist_info() {
 	return array(
 		"name" 			=> $lang->plugin_name,
 		"description" 	=> $lang->plugin_desc,
-		"website"		=> 'http://community.mybb.com/mods.php?action=view&pid=333',
+		"website"		=> 'https://github.com/SvePu/TYL-TopList',
 		"author"		=> 'SvePu',
-		"authorsite"	=> 'http://community.mybb.com/user-91011.html',
-		"version"		=> '1.1',
+		"authorsite"	=> 'https://github.com/SvePu',
+		"version"		=> '1.2',
 		"compatibility"	=> '16*,18*'
 	);
 }
@@ -134,8 +134,11 @@ if ($mybb->settings['tyltoplist_enable'] == 1){
 			$iPlace = 1;
 			
 			while ($data = $db->fetch_array($tul)) {
-				$trow = $iPlace % 2 == 0 ? "trow1" : "trow2";
-				$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['homeurl'] . 'showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'">'. $data['subject'] . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . build_profile_link($data['username'], $data['uid']) . '</td></tr>';
+				$username = htmlspecialchars_uni($data['username']);
+				$uid = htmlspecialchars_uni($data['uid']);
+				$userlink = build_profile_link($username, $uid);
+				$trow = alt_trow();
+				$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['homeurl'] . 'showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'">'. htmlspecialchars_uni($data['subject']) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $userlink . '</td></tr>';
 				
 				$iPlace++;
 			}
