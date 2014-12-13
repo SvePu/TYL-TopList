@@ -1,9 +1,9 @@
 <?php
 /*
-	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
+	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.6, 1.8
 	Language: deutsch_du
 	Copyright © 2014 Svepu
-	Last change: 2014-12-11
+	Last change: 2014-12-13
 */
 
 $l['plugin_name'] = 'TopList AddOn für THX/Like Plugin';
@@ -16,4 +16,6 @@ $l['tyltoplist_enable_title'] = 'Möchtest du dieses Extra einschalten?';
 $l['tyltoplist_enable_title_desc'] = 'Wähle JA zum aktivieren!';
 $l['tyltoplist_limit_title'] = 'Wie lang soll die Liste sein?';
 $l['tyltoplist_limit_title_desc'] = 'Setze ein Limit! (Nur ganze Zahlen! - default:20)';
+$l['tyltoplist_groupselect_title'] = 'Benutzergruppen, die die Toplist ansehen können.';
+$l['tyltoplist_groupselect_desc'] = 'Wähle Benutzergruppen, die die Toplist ansehen können.';
 ?>
