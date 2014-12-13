@@ -1,8 +1,8 @@
 <?php
 /*
-	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
+	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.6, 1.8
 	Copyright © 2014 Svepu
-	Last change: 2014-12-12
+	Last change: 2014-12-13
 */
 
 if(!defined('IN_MYBB')) {
@@ -22,7 +22,7 @@ function tyltoplist_info() {
 		"website"		=> 'https://github.com/SvePu/TYL-TopList',
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'https://github.com/SvePu',
-		"version"		=> '1.3',
+		"version"		=> '1.4',
 		"compatibility"	=> '16*,18*'
 	);
 }
@@ -52,7 +52,7 @@ function tyltoplist_activate() {
 	
 	$templatearray = array(
         "title" => "tyltoplist_disabled",
-        "template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" with=\"100%\"><thead><tr><td class=\"thead\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong></div></td></tr></thead><tbody><tr></tr><td class=\"trow1\"><div style=\"padding: 15px 5px;\">{\$lang->tyltoplist_disabled}</div></td><tr><td class=\"tfoot\"></td></tr></tbody></table>{\$footer}</body></html>",
+        "template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" with=\"100%\"><thead><tr><td class=\"thead\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - Info</strong></div></td></tr></thead><tbody><tr></tr><td class=\"trow1\"><div style=\"padding: 15px 5px;\">{\$lang->tyltoplist_disabled}</div></td><tr><td class=\"tfoot\"></td></tr></tbody></table>{\$footer}</body></html>",
 				"sid" => -2
 	);
 	$db->insert_query("templates", $templatearray);
@@ -92,6 +92,17 @@ function tyltoplist_activate() {
 		"gid" 			=> (int)$gid
 	);
 	$db->insert_query("settings", $tyltoplist_2);
+	
+	$tyltoplist_3 = array(
+		"name"			=> "tyltoplist_groupselect",
+		"title"			=> $lang->tyltoplist_groupselect_title,
+		"description" 	=> $lang->tyltoplist_groupselect_title_desc,
+        'optionscode'  	=> 'groupselect',
+        'value'        	=> '-1',
+		"disporder"		=> "3",
+		"gid" 			=> (int)$gid
+	);
+	$db->insert_query("settings", $tyltoplist_3);
 	rebuild_settings();
 }
 
@@ -108,6 +119,7 @@ function tyltoplist_deactivate() {
 	$db->query("DELETE FROM ".TABLE_PREFIX."settinggroups WHERE name='tyltoplist_settings'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_enable'");
     $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_limit'");
+	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_groupselect'");
 	rebuild_settings();
 }
 
@@ -117,53 +129,57 @@ function tyltoplist()
 	
 		if(isset($mybb->input['action']) && ($mybb->input['action'] == "tyltoplist"))
 		{
-			global $settings, $db,$templates,$theme,$headerinclude,$header,$footer,$lang;
-			
-			$lang->load("tyltoplist");
-			
-			if ($settings['g33k_thankyoulike_thankslike'] == "thanks"){
-				$tlprefix = $lang->tyltoplist_table_prefix_thanks;
-			} else {
-				$tlprefix = $lang->tyltoplist_table_prefix_likes;
-			}
-			
-			if ($settings['tyltoplist_limit'] < 1){
-				$settings['tyltoplist_limit'] = 20;
-			}
-			
-		if ($mybb->settings['tyltoplist_enable'] == 1){		
-			$tlTable = "";
-			$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
-								FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
-								LEFT JOIN ".TABLE_PREFIX."posts p ON l.pid = p.pid
-								GROUP BY l.pid
-								ORDER BY likes DESC, l.pid ASC
-								LIMIT 0,{$settings['tyltoplist_limit']}");
-			
-			$maxplace = $tul->num_rows;
-			$iPlace = 1;
-			
-			while ($data = $db->fetch_array($tul)) {
-				$username = htmlspecialchars_uni($data['username']);
-				$uid = htmlspecialchars_uni($data['uid']);
-				$userlink = build_profile_link($username, $uid);
-				$trow = alt_trow();
-				$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['homeurl'] . 'showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'">'. htmlspecialchars_uni($data['subject']) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $userlink . '</td></tr>';
+			if(is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1")){
+				global $settings, $db,$templates,$theme,$headerinclude,$header,$footer,$lang;
 				
-				$iPlace++;
+				$lang->load("tyltoplist");
+				
+				if ($settings['g33k_thankyoulike_thankslike'] == "thanks"){
+					$tlprefix = $lang->tyltoplist_table_prefix_thanks;
+				} else {
+					$tlprefix = $lang->tyltoplist_table_prefix_likes;
+				}
+				
+				if ($settings['tyltoplist_limit'] < 1){
+					$settings['tyltoplist_limit'] = 20;
+				}
+				
+				if ($mybb->settings['tyltoplist_enable'] == 1){		
+					$tlTable = "";
+					$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
+										FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
+										LEFT JOIN ".TABLE_PREFIX."posts p ON l.pid = p.pid
+										GROUP BY l.pid
+										ORDER BY likes DESC, l.pid ASC
+										LIMIT 0,{$settings['tyltoplist_limit']}");
+					
+					$maxplace = $tul->num_rows;
+					$iPlace = 1;
+					
+					while ($data = $db->fetch_array($tul)) {
+						$username = htmlspecialchars_uni($data['username']);
+						$uid = htmlspecialchars_uni($data['uid']);
+						$userlink = build_profile_link($username, $uid);
+						$trow = alt_trow();
+						$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['homeurl'] . 'showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'">'. htmlspecialchars_uni($data['subject']) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $userlink . '</td></tr>';
+						
+						$iPlace++;
+					}
+					
+					add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix);
+					eval("\$tyltoplist = \"".$templates->get("tyltoplist_view")."\";");
+				} else {
+					
+					add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix.' - Info');
+					eval("\$tyltoplist = \"".$templates->get("tyltoplist_disabled")."\";");
+				
+				}
+				output_page($tyltoplist);
+				
+				exit();
+			} else {
+				error_no_permission();
 			}
-			
-			add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix);
-			eval("\$tyltoplist = \"".$templates->get("tyltoplist_view")."\";");
-		} else {
-			
-			add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix.' - Info');
-			eval("\$tyltoplist = \"".$templates->get("tyltoplist_disabled")."\";");
-		
-		}
-			output_page($tyltoplist);
-			
-			exit();
 		}
 }
 ?>
