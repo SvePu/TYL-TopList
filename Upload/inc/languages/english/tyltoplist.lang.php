@@ -1,9 +1,9 @@
 <?php
 /*
-	Language file for 'TopList AddOn für THX/Like' plugin for MyBB 1.6, 1.8
+	Language file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: english
 	Copyright © 2014 Svepu
-	Last change: 2014-12-14 
+	Last change: 2014-12-16 
 */
 
 $l['tyltoplist_header'] = 'Top';
@@ -17,4 +17,5 @@ $l['table_header_autor'] = 'Postauthor';
 $l['tyltoplist_disabled'] = '<strong>Sorry, the desired list can not be displayed! - The administrator has disabled this functionality in the forums settings.</strong>';
 $l['tyltoplist_redirect_title'] = 'Single TYL-TopList site is deactivated - You will redirect....';
 $l['tyltoplist_redirect_desc'] = '<strong>Sorry, the desired list can not be displayed here!</strong><br /><br />The administrator has integrated this functionality by forums settings in forum statistics.<br />Now you will redirected to this statistic site.';
+$l['tyltoplist_online'] = 'Viewing <a href="misc.php?action=tyltoplist">TYL-Toplist</a>';
 ?>
