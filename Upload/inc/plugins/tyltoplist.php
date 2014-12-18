@@ -2,7 +2,7 @@
 /*
 	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Copyright © 2014 Svepu
-	Last change: 2014-12-16
+	Last change: 2014-12-18
 */
 
 if(!defined('IN_MYBB')) {
@@ -24,7 +24,7 @@ function tyltoplist_info() {
 		"website"		=> 'https://github.com/SvePu/TYL-TopList',
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'https://github.com/SvePu',
-		"version"		=> '1.6',
+		"version"		=> '1.7',
 		"compatibility"	=> '18*'
 	);
 }
@@ -103,37 +103,49 @@ function tyltoplist_activate() {
 	$db->insert_query("settings", $tyltoplist_2);
 	
 	$tyltoplist_3 = array(
+        'sid'           => 'NULL',
+        'name'			=> 'tyltoplist_styled_usernames',
+        'title'			=> $lang->tyltoplist_styled_usernames_title,
+        'description'  	=> $lang->tyltoplist_styled_usernames_title_desc,
+        'optionscode'  	=> 'yesno',
+        'value'        	=> '0',
+        'disporder'		=> "3",
+        "gid" 			=> (int)$gid
+    );
+	$db->insert_query('settings', $tyltoplist_3);
+	
+	$tyltoplist_4 = array(
 		"name"			=> "tyltoplist_groupselect",
 		"title"			=> $lang->tyltoplist_groupselect_title,
 		"description" 	=> $lang->tyltoplist_groupselect_title_desc,
         'optionscode'  	=> 'groupselect',
         'value'        	=> '-1',
-		"disporder"		=> "3",
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query("settings", $tyltoplist_3);
-	
-	$tyltoplist_4 = array(
-		"name"			=> "tyltoplist_fidsout",
-		"title"			=> $lang->tyltoplist_fidsout_title,
-		"description" 	=> $lang->tyltoplist_fidsout_title_desc,
-        'optionscode'  	=> 'text',
-        'value'        	=> '',
 		"disporder"		=> "4",
 		"gid" 			=> (int)$gid
 	);
 	$db->insert_query("settings", $tyltoplist_4);
 	
 	$tyltoplist_5 = array(
+		"name"			=> "tyltoplist_fidsout",
+		"title"			=> $lang->tyltoplist_fidsout_title,
+		"description" 	=> $lang->tyltoplist_fidsout_title_desc,
+        'optionscode'  	=> 'text',
+        'value'        	=> '',
+		"disporder"		=> "5",
+		"gid" 			=> (int)$gid
+	);
+	$db->insert_query("settings", $tyltoplist_5);
+	
+	$tyltoplist_6 = array(
 		"name"			=> "tyltoplist_show_in_stats",
 		"title"			=> $lang->tyltoplist_show_in_stats_title,
 		"description" 	=> $lang->tyltoplist_show_in_stats_title_desc,
         'optionscode'  	=> 'yesno',
         'value'        	=> '0',
-		"disporder"		=> "5",
+		"disporder"		=> "6",
 		"gid" 			=> (int)$gid
 	);
-	$db->insert_query("settings", $tyltoplist_5);
+	$db->insert_query("settings", $tyltoplist_6);
 	rebuild_settings();
 	
 	require_once MYBB_ROOT."inc/adminfunctions_templates.php";
@@ -154,6 +166,7 @@ function tyltoplist_deactivate() {
 	$db->query("DELETE FROM ".TABLE_PREFIX."settinggroups WHERE name='tyltoplist_settings'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_enable'");
     $db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_limit'");
+	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_styled_usernames'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_groupselect'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_fidsout'");
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE name='tyltoplist_show_in_stats'");
@@ -209,9 +222,10 @@ function tyltoplist()
 								$tyltoplist_fidsoutlist = "AND fid NOT IN ($tyltoplist_forum_ids)";
 							}
 						}						
-						$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
+						$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid, u.usergroup, u.displaygroup
 											FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
-											LEFT JOIN ".TABLE_PREFIX."posts p ON l.pid = p.pid
+											LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
+											LEFT JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
 											WHERE visible='1' {$tyltoplist_unviewwhere} {$tyltoplist_fidsoutlist}
 											GROUP BY l.pid
 											ORDER BY likes DESC, l.pid ASC
@@ -222,10 +236,13 @@ function tyltoplist()
 						
 						while ($data = $db->fetch_array($tul)) {
 							$username = htmlspecialchars_uni($data['username']);
-							$userlink = build_profile_link($username, $data['uid']);
+							if ($settings['tyltoplist_styled_usernames'] == 1){
+								$userlink = build_profile_link(format_name($username, $data['usergroup'], $data['displaygroup']), $data['uid']);
+							} else {
+								$userlink = build_profile_link($username, $data['uid']);
+							}
 							$trow = alt_trow();
 							$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'">'. htmlspecialchars_uni($data['subject']) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $userlink . '</td></tr>';
-							
 							$iPlace++;
 						}						
 						add_breadcrumb($lang->tyltoplist_header.' '.$settings['tyltoplist_limit'].' '.$tlprefix);
@@ -291,22 +308,26 @@ function tyltoplist_stats()
 						$tyltoplist_fidsoutlist = "AND fid NOT IN ($tyltoplist_forum_ids)";
 					}
 				}						
-				$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid
+				$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid, u.usergroup, u.displaygroup
 									FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
-									LEFT JOIN ".TABLE_PREFIX."posts p ON l.pid = p.pid
+									LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
+									LEFT JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
 									WHERE visible='1' {$tyltoplist_unviewwhere} {$tyltoplist_fidsoutlist}
 									GROUP BY l.pid
 									ORDER BY likes DESC, l.pid ASC
 									LIMIT 0,{$settings['tyltoplist_limit']}");
-				
+						
 				$maxplace = $tul->num_rows;
 				$iPlace = 1;
 				
 				while ($data = $db->fetch_array($tul)) {
 					$username = htmlspecialchars_uni($data['username']);
-					$userlink = build_profile_link($username, $data['uid']);
+					if ($settings['tyltoplist_styled_usernames'] == 1){
+						$userlink = build_profile_link(format_name($username, $data['usergroup'], $data['displaygroup']), $data['uid']);
+					} else {
+						$userlink = build_profile_link($username, $data['uid']);
+					}
 					$tlTable = $tlTable . '<tr><td class="trow1" valign="middle" align="center">' . $iPlace . '</td><td class="trow1" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?pid='.$data['pid'].'#post_'.$data['pid'].'"><strong>'. htmlspecialchars_uni($data['subject']) . '</strong></a></td><td class="trow1" valign="middle" align="center">' . $data['likes'] . '</td><td class="trow1" valign="middle" align="right">' . $userlink . '</td></tr>';
-					
 					$iPlace++;
 				}
 				
