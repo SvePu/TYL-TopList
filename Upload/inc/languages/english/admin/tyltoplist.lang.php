@@ -3,7 +3,7 @@
 	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: english
 	Copyright © 2014 Svepu
-	Last change: 2014-12-18
+	Last change: 2014-12-22
 */
 
 $l['plugin_name'] = 'TopList addon for Thank You/Like System';
@@ -20,8 +20,8 @@ $l['tyltoplist_styled_usernames_title'] = 'Show usernames in user group based st
 $l['tyltoplist_styled_usernames_title_desc'] = 'Choose YES to enable this feature!';
 $l['tyltoplist_groupselect_title'] = 'Usergroups who can view the toplist.';
 $l['tyltoplist_groupselect_desc'] = 'Select usergroups who can view the toplist.';
-$l['tyltoplist_fidsout_title'] = 'Do not show thanked/liked posts from certain forums. (eg: OffTopic)';
-$l['tyltoplist_fidsout_title_desc'] = 'Type in forum IDs separated by commas. (default: blank)';
+$l['tyltoplist_fidsout_title'] = 'Excluding thanked/liked posts from certain forums. (eg: OffTopic)';
+$l['tyltoplist_fidsout_title_desc'] = 'Select to exclude forums. (Info: only Forums - no categories - default: none)';
 $l['tyltoplist_show_in_stats_title'] = 'Toplist in Forum Statistics';
 $l['tyltoplist_show_in_stats_title_desc'] = 'Do you want disable single toplist page and integrate toplist into forum statistics? - Choose YES!';
 ?>

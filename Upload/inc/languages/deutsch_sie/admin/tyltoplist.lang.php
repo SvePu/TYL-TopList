@@ -3,7 +3,7 @@
 	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: deutsch_sie
 	Copyright © 2014 Svepu
-	Last change: 2014-12-18
+	Last change: 2014-12-22
 */
 
 $l['plugin_name'] = 'TopList AddOn für Thank You/Like System';
@@ -20,8 +20,8 @@ $l['tyltoplist_styled_usernames_title'] = 'Gruppenbasierenden Benutzernamen-Stil
 $l['tyltoplist_styled_usernames_title_desc'] = 'Wählen Sie JA zum aktivieren!';
 $l['tyltoplist_groupselect_title'] = 'Benutzergruppen, die die Toplist ansehen können.';
 $l['tyltoplist_groupselect_desc'] = 'Wählen Sie Benutzergruppen, die die Toplist ansehen können.';
-$l['tyltoplist_fidsout_title'] = 'Keine Danke/GefälltMir Beiträge aus bestimmten Foren auflisten. (z.B. OffTopic)';
-$l['tyltoplist_fidsout_title_desc'] = 'Geben Sie die IDs der auszuschließenden Foren getrennt durch Kommas ein. (Standard: leer)';
+$l['tyltoplist_fidsout_title'] = 'Danke/GefälltMir Beiträge aus bestimmten Foren auschließen. (z.B. OffTopic)';
+$l['tyltoplist_fidsout_title_desc'] = 'Markieren Sie die auszuschließenden Foren. (Info: Nur Foren - keine Kategorien  - Standard: Keine)';
 $l['tyltoplist_show_in_stats_title'] = 'Toplist in Forum-Statistiken';
 $l['tyltoplist_show_in_stats_title_desc'] = 'Möchten Sie die einzelne TopList Seite deaktivieren und die Liste in die Foren Statistiken integrieren?';
 ?>
