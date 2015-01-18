@@ -30,7 +30,8 @@ function tyltoplist_info() {
 		"website"		=> 'https://github.com/SvePu/TYL-TopList',
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'https://github.com/SvePu',
-		"version"		=> '1.9',
+		"codename"	=>	'tyltoplist',
+		"version"		=> '2.0',
 		"compatibility"	=> '18*'
 	);
 	
