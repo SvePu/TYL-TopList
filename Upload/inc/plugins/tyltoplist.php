@@ -273,7 +273,7 @@ function tyltoplist_stats()
 
 function tyltoplist_online(&$plugin_array)
 {
-	global $lang;
+	global $db, $lang;
 	$lang->load("tyltoplist");
 	if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php')){
 		$plugin_array['location_name'] = $db->escape_string($lang->tyltoplist_online);
