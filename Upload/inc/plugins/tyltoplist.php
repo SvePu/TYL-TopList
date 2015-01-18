@@ -276,7 +276,7 @@ function tyltoplist_online(&$plugin_array)
 	global $db, $lang;
 	$lang->load("tyltoplist");
 	if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php')){
-		$plugin_array['location_name'] = $db->escape_string($lang->tyltoplist_online);
+		$plugin_array['location_name'] = $lang->sprintf($db->escape_string($lang->tyltoplist_online), '<a href="' . $mybb->settings['bburl'] . '/tyltoplist.php">TYL-Toplist</a>');
 	}
 }
 ?>
