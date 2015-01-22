@@ -260,7 +260,7 @@ function tyltoplist_stats()
 					if ($settings['tyltoplist_styled_usernames'] == 1){
 						$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
 					} else {
-						$tyltoplist_userlink = build_profile_link($username, $data['uid']);
+						$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
 					}
 					$tlTable = $tlTable . '<tr><td class="trow1" valign="middle" align="center">' . $iPlace . '</td><td class="trow1" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '"><strong>' . htmlspecialchars_uni($parser->parse_badwords($data['subject'])) . '</strong></a></td><td class="trow1" valign="middle" align="center">' . $data['likes'] . '</td><td class="trow1" valign="middle" align="right">' . $tyltoplist_userlink . '</td></tr>';
 					$iPlace++;
