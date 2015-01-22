@@ -2,7 +2,7 @@
 /*
 	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Copyright © 2015 Svepu
-	Last change: 2015-01-18
+	Last change: 2015-01-22 - v 1.9.1
 */
 
 if(!defined('IN_MYBB')) {
@@ -31,7 +31,7 @@ function tyltoplist_info() {
 		"author"		=> 'SvePu',
 		"authorsite"	=> 'https://github.com/SvePu',
 		"codename"	=>	'tyltoplist',
-		"version"		=> '2.0',
+		"version"		=> '1.9.1',
 		"compatibility"	=> '18*'
 	);
 	
