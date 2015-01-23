@@ -2,7 +2,7 @@
 /*
 *	Main page for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 *	Copyright © 2015 Svepu
-*	Last change: 2015-01-18
+*	Last change: 2015-01-22 - v 1.9.1
 */
 
 define("IN_MYBB", 1);
@@ -56,14 +56,14 @@ if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['ty
 			$maxplace = $tul->num_rows;
 			$iPlace = 1;
 			while ($data = $db->fetch_array($tul)) {
-				$username = htmlspecialchars_uni($data['username']);
+				$tyltoplist_username = htmlspecialchars_uni($data['username']);
 				if ($settings['tyltoplist_styled_usernames'] == 1){
-					$userlink = build_profile_link(format_name($username, $data['usergroup'], $data['displaygroup']), $data['uid']);
+					$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
 				} else {
-					$userlink = build_profile_link($username, $data['uid']);
+					$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
 				}
 				$trow = alt_trow();
-				$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '">' . htmlspecialchars_uni($tlparser->parse_message($data['subject'], $tlparser_options)) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $userlink . '</td></tr>';
+				$tlTable = $tlTable . '<tr><td class="' . $trow . '" valign="middle" align="center">' . $iPlace . '</td><td class="' . $trow . '" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '">' . htmlspecialchars_uni($tlparser->parse_message($data['subject'], $tlparser_options)) . '</a></td><td class="' . $trow . '" valign="middle" align="center">' . $data['likes'] . '</td><td class="' . $trow . '" valign="middle" align="right">' . $tyltoplist_userlink . '</td></tr>';
 				$iPlace++;
 			}						
 			add_breadcrumb($db->escape_string($lang->tyltoplist_header).' '.$settings['tyltoplist_limit'].' '.$tlprefix);

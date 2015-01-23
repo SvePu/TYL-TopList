@@ -25,14 +25,14 @@ function tyltoplist_info() {
 	$lang->load("tyltoplist");
 	
     $info = array(
-		"name" 			=> $db->escape_string($lang->plugin_name),
-		"description" 	=> $db->escape_string($lang->plugin_desc),
-		"website"		=> 'https://github.com/SvePu/TYL-TopList',
-		"author"		=> 'SvePu',
-		"authorsite"	=> 'https://github.com/SvePu',
-		"codename"	=>	'tyltoplist',
-		"version"		=> '1.9.1',
-		"compatibility"	=> '18*'
+		"name"			=> 	$db->escape_string($lang->plugin_name),
+		"description"	=> 	$db->escape_string($lang->plugin_desc),
+		"website"		=> 	'https://github.com/SvePu/TYL-TopList',
+		"author"		=> 	'SvePu',
+		"authorsite"	=> 	'https://github.com/SvePu',
+		"codename"		=>	'tyltoplist'
+		"version"		=> 	'1.9.1',
+		"compatibility"	=> 	'18*'
 	);
 	
 	$info_desc = '';
