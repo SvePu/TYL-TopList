@@ -2,7 +2,7 @@
 /*
 	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Copyright © 2015 Svepu
-	Last change: 2015-01-22 - v 1.9.1
+	Last change: 2015-10-04 - v 1.9.2
 */
 
 if(!defined('IN_MYBB')) {
@@ -31,7 +31,7 @@ function tyltoplist_info() {
 		"author"		=> 	'SvePu',
 		"authorsite"	=> 	'https://github.com/SvePu',
 		"codename"		=>	'tyltoplist',
-		"version"		=> 	'1.9.1',
+		"version"		=> 	'1.9.2',
 		"compatibility"	=> 	'18*'
 	);
 	
@@ -61,12 +61,14 @@ function tyltoplist_info() {
     return $info;
 }
 
-function tyltoplist_activate() {
+function tyltoplist_activate() 
+{
 	global $db, $mybb, $lang;
 	
 	$lang->load("tyltoplist");
 	
-	if($mybb->settings['g33k_thankyoulike_enabled'] != "1"){
+	if($mybb->settings['g33k_thankyoulike_enabled'] != "1")
+	{
 		flash_message("{$lang->mainplugin_req}", "error");
 		admin_redirect("index.php?module=config-plugins");
 	}
@@ -184,7 +186,8 @@ function tyltoplist_activate() {
     find_replace_templatesets("stats", '#{\$footer}(\r?)\n#', "{\$tyltoplist_stats}\n{\$footer}\n");
 }
 
-function tyltoplist_deactivate() {
+function tyltoplist_deactivate()
+{
 	global $db;
 	
 	$templatearray = array(
@@ -214,24 +217,30 @@ function tyltoplist_stats()
 {
 	global $mybb;
 	
-	if ($mybb->settings['tyltoplist_show_in_stats'] == 1){
-	
-		if(is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1")){
+	if ($mybb->settings['tyltoplist_show_in_stats'] == 1)
+	{	
+		if(is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1"))
+		{
 			global $settings, $db,$templates,$theme,$lang,$parser,$tyltoplist_stats;
 			
 			$lang->load("tyltoplist");
 			
-			if ($settings['g33k_thankyoulike_thankslike'] == "thanks"){
+			if ($settings['g33k_thankyoulike_thankslike'] == "thanks")
+			{
 				$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_thanks);
-			} else {
+			}
+			else
+			{
 				$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_likes);
 			}
 			
-			if ($settings['tyltoplist_limit'] < 1){
+			if ($settings['tyltoplist_limit'] < 1)
+			{
 				$settings['tyltoplist_limit'] = 20;
 			}
 			
-			if ($mybb->settings['tyltoplist_enable'] == 1 && $settings['tyltoplist_fidsout'] != -1){		
+			if ($mybb->settings['tyltoplist_enable'] == 1 && $settings['tyltoplist_fidsout'] != -1)
+			{		
 				$tlTable = "";
 				$tyltoplist_unviewwhere = "";
 				$tyltoplist_unviewable = get_unviewable_forums();
@@ -255,11 +264,15 @@ function tyltoplist_stats()
 				$maxplace = $tul->num_rows;
 				$iPlace = 1;
 				
-				while ($data = $db->fetch_array($tul)) {
+				while ($data = $db->fetch_array($tul))
+				{
 					$tyltoplist_username = htmlspecialchars_uni($data['username']);
-					if ($settings['tyltoplist_styled_usernames'] == 1){
+					if ($settings['tyltoplist_styled_usernames'] == 1)
+					{
 						$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
-					} else {
+					}
+					else
+					{
 						$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
 					}
 					$tlTable = $tlTable . '<tr><td class="trow1" valign="middle" align="center">' . $iPlace . '</td><td class="trow1" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '"><strong>' . htmlspecialchars_uni($parser->parse_badwords($data['subject'])) . '</strong></a></td><td class="trow1" valign="middle" align="center">' . $data['likes'] . '</td><td class="trow1" valign="middle" align="right">' . $tyltoplist_userlink . '</td></tr>';
@@ -276,8 +289,8 @@ function tyltoplist_online(&$plugin_array)
 {
 	global $db, $lang;
 	$lang->load("tyltoplist");
-	if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php')){
+	if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php'))
+	{
 		$plugin_array['location_name'] = $lang->sprintf($db->escape_string($lang->tyltoplist_online), '<a href="' . $mybb->settings['bburl'] . '/tyltoplist.php">TYL-Toplist</a>');
 	}
 }
-?>

@@ -2,7 +2,7 @@
 /*
 *	Main page for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 *	Copyright © 2015 Svepu
-*	Last change: 2015-01-22 - v 1.9.1
+*	Last change: 2015-10-04 - v 1.9.2
 */
 
 define("IN_MYBB", 1);
@@ -12,23 +12,28 @@ $templatelist = "tyltoplist_view,tyltoplist_disabled";
 
 require_once "./global.php";
 
-if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1")){
-				
-	if($mybb->settings['tyltoplist_show_in_stats'] != 1){
-		
+if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1"))
+{				
+	if($mybb->settings['tyltoplist_show_in_stats'] != 1)
+	{		
 		$lang->load("tyltoplist");
 		
-		if ($settings['g33k_thankyoulike_thankslike'] == "thanks"){
+		if ($settings['g33k_thankyoulike_thankslike'] == "thanks")
+		{
 			$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_thanks);
-		} else {
+		} 
+		else
+		{
 			$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_likes);
 		}
 		
-		if ($settings['tyltoplist_limit'] < 1){
+		if ($settings['tyltoplist_limit'] < 1)
+		{
 			$settings['tyltoplist_limit'] = 20;
 		}
 		
-		if ($settings['tyltoplist_enable'] == 1 && $settings['tyltoplist_fidsout'] != -1){
+		if ($settings['tyltoplist_enable'] == 1 && $settings['tyltoplist_fidsout'] != -1)
+		{
 			require_once MYBB_ROOT."inc/class_parser.php";
 			$tlparser = new postParser();
 			$tlparser_options = array("filter_badwords" => 1);
@@ -55,11 +60,15 @@ if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['ty
 								LIMIT 0,{$settings['tyltoplist_limit']}");				
 			$maxplace = $tul->num_rows;
 			$iPlace = 1;
-			while ($data = $db->fetch_array($tul)) {
+			while ($data = $db->fetch_array($tul))
+			{
 				$tyltoplist_username = htmlspecialchars_uni($data['username']);
-				if ($settings['tyltoplist_styled_usernames'] == 1){
+				if ($settings['tyltoplist_styled_usernames'] == 1)
+				{
 					$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
-				} else {
+				}
+				else
+				{
 					$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
 				}
 				$trow = alt_trow();
@@ -68,19 +77,24 @@ if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['ty
 			}						
 			add_breadcrumb($db->escape_string($lang->tyltoplist_header).' '.$settings['tyltoplist_limit'].' '.$tlprefix);
 			eval("\$tyltoplist = \"".$templates->get("tyltoplist_view")."\";");
-		} else {						
+		} 
+		else
+		{						
 			add_breadcrumb($db->escape_string($lang->tyltoplist_header).' '.$settings['tyltoplist_limit'].' '.$tlprefix.' - Info');
-			eval("\$tyltoplist = \"".$templates->get("tyltoplist_disabled")."\";");
-		
+			eval("\$tyltoplist = \"".$templates->get("tyltoplist_disabled")."\";");		
 		}
 		output_page($tyltoplist);					
 		exit();
-	} else {
+	} 
+	else
+	{
 		global $lang;
 		$lang->load("tyltoplist");
 		redirect("stats.php", $db->escape_string($lang->tyltoplist_redirect_desc), $db->escape_string($lang->tyltoplist_redirect_title), $force_redirect=true);					
 	}
-} else {
+}
+else
+{
 	error_no_permission();
 }
 ?>
