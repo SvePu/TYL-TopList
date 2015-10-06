@@ -16,6 +16,7 @@ $l['table_header_autor'] = 'Beitragsautor';
 
 $l['tyltoplist_disabled'] = '<strong>Sorry, die gewünschte Liste kann leider nicht angezeigt werden! - Der Administrator hat diese Funktion in den Foreneinstellungen deaktiviert.</strong>';
 $l['tyltoplist_redirect_title'] = 'Einzelne TopList-Seite ist deaktiviert - Du wirst weitergeleitet....';
-$l['tyltoplist_redirect_desc'] = '<strong>Sorry, die gewünschte Liste kann hier nicht angezeigt werden!</strong><br /><br />Der Administrator hat diese Funktion über die Einstellungen in die Forum Statistiken integriert.<br />Du wirst nun zur Statistik Seite weitergeleitet.';
+$l['tyltoplist_redirect_desc_b'] = '<strong>Sorry, die gewünschte Liste kann hier nicht angezeigt werden!</strong><br /><br />Der Administrator hat diese Funktion über die Einstellungen in die Board Statistiken integriert.<br />Du wirst nun zur Index Seite weitergeleitet.';
+$l['tyltoplist_redirect_desc_f'] = '<strong>Sorry, die gewünschte Liste kann hier nicht angezeigt werden!</strong><br /><br />Der Administrator hat diese Funktion über die Einstellungen in die Forum Statistiken integriert.<br />Du wirst nun zur Statistik Seite weitergeleitet.';
 $l['tyltoplist_online'] = 'Sieht sich die {1} an.';
 ?>

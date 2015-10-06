@@ -2,7 +2,7 @@
 /*
 *	Main page for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 *	Copyright © 2015 Svepu
-*	Last change: 2015-10-04 - v 1.9.2
+*	Last change: 2015-10-06 - v 1.9.3
 */
 
 define("IN_MYBB", 1);
@@ -14,7 +14,7 @@ require_once "./global.php";
 
 if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1"))
 {				
-	if($mybb->settings['tyltoplist_show_in_stats'] != 1)
+	if($mybb->settings['tyltoplist_show_where'] == 1)
 	{		
 		$lang->load("tyltoplist");
 		
@@ -86,11 +86,17 @@ if (is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['ty
 		output_page($tyltoplist);					
 		exit();
 	} 
+	else if ($mybb->settings['tyltoplist_show_where'] == 2)
+	{
+		global $lang;
+		$lang->load("tyltoplist");
+		redirect("index.php", $db->escape_string($lang->tyltoplist_redirect_desc_b), $db->escape_string($lang->tyltoplist_redirect_title), $force_redirect=true);					
+	}
 	else
 	{
 		global $lang;
 		$lang->load("tyltoplist");
-		redirect("stats.php", $db->escape_string($lang->tyltoplist_redirect_desc), $db->escape_string($lang->tyltoplist_redirect_title), $force_redirect=true);					
+		redirect("stats.php", $db->escape_string($lang->tyltoplist_redirect_desc_f), $db->escape_string($lang->tyltoplist_redirect_title), $force_redirect=true);					
 	}
 }
 else

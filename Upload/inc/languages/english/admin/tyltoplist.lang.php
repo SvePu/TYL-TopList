@@ -2,8 +2,8 @@
 /*
 	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: english
-	Copyright © 2014 Svepu
-	Last change: 2014-12-22
+	Copyright © 2015 Svepu
+	Last change: 2015-10-06
 */
 
 $l['plugin_name'] = 'TopList addon for Thank You/Like System';
@@ -22,6 +22,9 @@ $l['tyltoplist_groupselect_title'] = 'Usergroups who can view the toplist.';
 $l['tyltoplist_groupselect_desc'] = 'Select usergroups who can view the toplist.';
 $l['tyltoplist_fidsout_title'] = 'Excluding thanked/liked posts from certain forums. (eg: OffTopic)';
 $l['tyltoplist_fidsout_title_desc'] = 'Select to exclude forums. (Info: only Forums - no categories - default: none)';
-$l['tyltoplist_show_in_stats_title'] = 'Toplist in Forum Statistics';
-$l['tyltoplist_show_in_stats_title_desc'] = 'Do you want disable single toplist page and integrate toplist into forum statistics? - Choose YES!';
+$l['tyltoplist_show_where_title'] = 'Location of TYL-Toplist';
+$l['tyltoplist_show_where_title_desc'] = 'Choose the place where you want show the TYL-Toplist.';
+$l['tyltoplist_show_where_page'] = 'On a separate page (/tyltoplist.php)';
+$l['tyltoplist_show_where_boardstats'] = 'In board statistics on index page';
+$l['tyltoplist_show_where_forumstats'] = 'In extended forum statistics page (/stats.php)';
 ?>
