@@ -2,8 +2,8 @@
 /*
 	Language file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: deutsch_du
-	Copyright © 2014 Svepu
-	Last change: 2015-01-18 
+	Copyright © 2015 Svepu
+	Last change: 2015-10-06
 */
 
 $l['tyltoplist_header'] = 'Top';

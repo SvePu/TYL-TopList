@@ -2,7 +2,7 @@
 /*
 *	Main page for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 *	Copyright © 2015 Svepu
-*	Last change: 2015-10-06 - v 1.9.3
+*	Last change: 2015-10-06 - v 1.9.2
 */
 
 define("IN_MYBB", 1);
