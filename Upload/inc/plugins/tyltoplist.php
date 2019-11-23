@@ -121,8 +121,8 @@ function tyltoplist_activate()
 	);
 	$db->insert_query("templates", $templatearray);
 
-	$query_add = $db->simple_select("settinggroups", "COUNT(*) as rows");
-	$rows = $db->fetch_field($query_add, "rows");
+	$query_add = $db->simple_select("settinggroups", "COUNT(*) as counts");
+	$rows = $db->fetch_field($query_add, "counts");
 	$tyltoplist_group = array(
 		"name" 			=>	"tyltoplist_settings",
 		"title" 		=>	$db->escape_string($lang->tyltoplist_settings_title),
