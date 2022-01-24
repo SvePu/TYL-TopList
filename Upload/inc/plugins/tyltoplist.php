@@ -1,340 +1,521 @@
 <?php
 /*
-	Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
-	Copyright © 2019 Svepu
-	Last change: 2019-11-23 - v 1.9.3
+    Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
+    Copyright © 2019 Svepu
+    Last change: 2022-01-24 - v2.0
 */
 
 if(!defined('IN_MYBB'))
 {
-	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
+    die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
-if(defined('THIS_SCRIPT'))
+if(defined('IN_ADMINCP'))
 {
-	global $templatelist;
-
-	if(isset($templatelist))
-	{
-		$templatelist .= ',';
-	}
-
-	if(THIS_SCRIPT == 'index.php')
-	{
-		$templatelist .= 'tyltoplist_bstats_view';
-	}
-	elseif(THIS_SCRIPT == 'stats.php')
-	{
-		$templatelist .= 'tyltoplist_fstats_view';
-	}
+    $plugins->add_hook("admin_config_settings_begin",'tyltoplist_settings');
 }
-
-$plugins->add_hook('index_start','tyltoplist_stats');
-$plugins->add_hook('stats_start','tyltoplist_stats');
-$plugins->add_hook('build_friendly_wol_location_end', 'tyltoplist_online');
+else
+{
+    $plugins->add_hook('global_start','tyltoplist_hooks');
+    $plugins->add_hook('build_friendly_wol_location_end', 'tyltoplist_online');
+}
 
 function tyltoplist_info() {
-	global $plugins_cache, $mybb, $db, $lang;
+    global $mybb, $db, $lang;
 
-	$lang->load("tyltoplist");
+    $lang->load("config_tyltoplist");
 
-	$info = array(
-		"name"			=> 	$db->escape_string($lang->plugin_name),
-		"description"	=> 	$db->escape_string($lang->plugin_desc),
-		"website"		=> 	'https://github.com/SvePu/TYL-TopList',
-		"author"		=> 	'SvePu',
-		"authorsite"	=> 	'https://github.com/SvePu',
-		"codename"		=>	'tyltoplist',
-		"version"		=> 	'1.9.3',
-		"compatibility"	=> 	'18*'
-	);
+    $info = array(
+        "name"          =>  $db->escape_string($lang->tyltoplist),
+        "description"   =>  $db->escape_string($lang->tyltoplist_desc),
+        "website"       =>  'https://github.com/SvePu/TYL-TopList',
+        "author"        =>  'SvePu',
+        "authorsite"    =>  'https://github.com/SvePu',
+        "codename"      =>  'tyltoplist',
+        "version"       =>  '2.0',
+        "compatibility" =>  '18*'
+    );
 
-	$info_desc = '';
-	$gid_result = $db->simple_select('settinggroups', 'gid', "name = 'tyltoplist_settings'", array('limit' => 1));
-	$settings_group = $db->fetch_array($gid_result);
-	if(!empty($settings_group['gid']))
-	{
-		$info_desc .= "<span style=\"font-size: 0.9em;\">(~<a href=\"index.php?module=config-settings&action=change&gid=".$settings_group['gid']."\"> ".$db->escape_string($lang->tyltoplist_settings_title)." </a>~)</span>";
-	}
+    $info_desc = '';
+    $gid_result = $db->simple_select('settinggroups', 'gid', "name = 'tyltoplist'", array('limit' => 1));
+    $settings_group = $db->fetch_array($gid_result);
+    if(!empty($settings_group['gid']))
+    {
+        $info_desc .= "<span style=\"font-size: 0.9em;\">(~<a href=\"index.php?module=config-settings&action=change&gid=".$settings_group['gid']."\"> ".$db->escape_string($lang->setting_group_tyltoplist)." </a>~)</span>";
+    }
 
-	if(is_array($plugins_cache) && is_array($plugins_cache['active']) && $plugins_cache['active']['tyltoplist'])
-	{
-		$info_desc .= '<form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="float: right;" target="_blank" />
-<input type="hidden" name="cmd" value="_s-xclick" />
-<input type="hidden" name="hosted_button_id" value="VGQ4ZDT8M7WS2" />
-<input type="image" src="https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!" />
-<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1" />
-</form>';
-	}
+    if($info_desc != '')
+    {
+        $info['description'] = $info_desc.'<br />'.$info['description'];
+    }
 
-	if($info_desc != '')
-	{
-		$info['description'] = $info_desc.'<br />'.$info['description'];
-	}
-
-	return $info;
+    return $info;
 }
 
 function tyltoplist_activate()
 {
-	global $db, $mybb, $lang;
+    global $db, $mybb, $lang;
 
-	$lang->load("tyltoplist");
+    $lang->load("config_tyltoplist");
 
-	if($mybb->settings['g33k_thankyoulike_enabled'] != "1")
-	{
-		flash_message("{$lang->mainplugin_req}", "error");
-		admin_redirect("index.php?module=config-plugins");
-	}
+    if($mybb->settings['g33k_thankyoulike_enabled'] != "1")
+    {
+        flash_message("{$lang->mainplugin_req}", "error");
+        admin_redirect("index.php?module=config-plugins");
+    }
 
-	$templateset = array(
-	    "prefix" => "tyltoplist",
-	    "title" => "TYL-TopList",
-	);
-	$db->insert_query("templategroups", $templateset);
+    // Templates
+    $templatearray = array(
+    'page_view' => '<html>
+    <head>
+        <title>{$lang->tyltoplist_header} - {$mybb->settings[\'bbname\']}</title>
+        {$headerinclude}
+    </head>
+    <body>
+        {$header}
+        <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder" width="100%">
+            <thead>
+                <tr>
+                    <td class="thead" colspan="4">
+                        <div><strong>{$lang->tyltoplist_header}</strong></div>
+                        <div class="smalltext">{$lang->tyltoplist_header_desc}</div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="tcat" width="5%" style="text-align:center;"><strong>#</strong></td>
+                    <td class="tcat" width="80%"><strong>{$lang->table_header_post}</strong></td>
+                    <td class="tcat" width="5%" style="text-align:center;"><strong>{$lang->table_header_number}</strong></td>
+                    <td class="tcat" width="10%" style="text-align:right;"><strong>{$lang->table_header_autor}</strong></td>
+                </tr>
+                {$tlTable}
+                <tr>
+                    <td class="tfoot" colspan="4">{$tlCopyright}</td>
+                </tr>
+            </tbody>
+        </table>
+        {$footer}
+    </body>
+</html>',
+    'row' => '<tr>
+    <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$i}</span></td>
+    <td class="{$altbg}"><span{$styleclass}><a href="{$postlink}"><strong>{$postsubject}</strong></a></span></td>
+    <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$likes}</span></td>
+    <td class="{$altbg}" style="text-align:right;"><span{$styleclass}>{$userlink}</span></td>
+</tr>',
+    'index_view' => '<tr>
+    <td style="padding: 0;">
+        <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" width="100%">
+            <thead>
+                <tr>
+                    <td class="tcat" colspan="4" style="border-radius: 0;"><span><strong class="smalltext">{$lang->tyltoplist_header}</strong>&nbsp;<span class="smalltext">[{$lang->tyltoplist_header_desc}]</span></span></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="tfoot" width="5%" style="text-align:center;padding: 2px 6px;"><span class="smalltext">#</span></td>
+                    <td class="tfoot" width="80%" style="padding: 2px 6px;"><span class="smalltext">{$lang->table_header_post}</span></td>
+                    <td class="tfoot" width="5%" style="text-align:center;padding: 2px 6px;"><span class="smalltext">{$lang->table_header_number}</span></td>
+                    <td class="tfoot" width="10%" style="text-align:right;padding: 2px 6px;"><span class="smalltext">{$lang->table_header_autor}</span></td>
+                </tr>
+                {$tlTable}
+            </tbody>
+        </table>
+    </td>
+</tr>',
+    'stats_view' => '<br/>
+<table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder" width="100%">
+    <thead>
+        <tr>
+            <td class="thead" colspan="4">
+                <div><strong>{$lang->tyltoplist_header}</strong></div>
+                <div class="smalltext">{$lang->tyltoplist_header_desc}</div>
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="tcat" width="5%" style="text-align:center;">
+                <strong>#</strong>
+            </td>
+            <td class="tcat" width="80%">
+                <strong>{$lang->table_header_post}</strong>
+            </td>
+            <td class="tcat" width="5%" style="text-align:center;">
+                <strong>{$lang->table_header_number}</strong>
+            </td>
+            <td class="tcat" width="10%" style="text-align:right;">
+                <strong>{$lang->table_header_autor}</strong>
+            </td>
+        </tr>
+        {$tlTable}
+    </tbody>
+</table>'
+    );
 
-	$templatearray = array(
-		"title" => "tyltoplist_view",
-		"template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" width=\"100%\"><thead><tr><td class=\"thead\" colspan=\"4\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong><br /><div class=\"smalltext\">{\$lang->tyltoplist_desc} {\$tlprefix}</div></div></td></tr></thead><tbody><tr><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$lang->table_header_place}</strong></td><td class=\"tcat\" width=\"80%\"><strong>{\$lang->table_header_post}</strong></td><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$tlprefix}</strong></td><td class=\"tcat\" width=\"10%\" style=\"text-align:right;\"><strong>{\$lang->table_header_autor}</strong></td></tr>{\$tlTable}<tr><td class=\"tfoot\" colspan=\"4\">{\$tlCopyright}</td></tr></tbody></table>{\$footer}</body></html>",
-				"sid" => -2
-	);
-	$db->insert_query("templates", $templatearray);
+    $group = array(
+        'prefix' => $db->escape_string('tyltoplist'),
+        'title' => $db->escape_string('TYL-TopList')
+    );
 
-	$templatearray = array(
-		"title" => "tyltoplist_disabled",
-		"template" => "<html><head><title>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - {\$mybb->settings[\'bbname\']}</title>{\$headerinclude}</head><body>{\$header}<table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" width=\"100%\"><thead><tr><td class=\"thead\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix} - Info</strong></div></td></tr></thead><tbody><tr></tr><td class=\"trow1\"><div style=\"padding: 15px 5px;\">{\$lang->tyltoplist_disabled}</div></td><tr><td class=\"tfoot\"></td></tr></tbody></table>{\$footer}</body></html>",
-				"sid" => -2
-	);
-	$db->insert_query("templates", $templatearray);
+    $query = $db->simple_select('templategroups', 'prefix', "prefix='{$group['prefix']}'");
 
-	$templatearray = array(
-		"title" => "tyltoplist_bstats_view",
-		"template" => "<tr><td style=\"padding: 0;\"><table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" width=\"100%\"><thead><tr><td class=\"tcat\" colspan=\"4\" style=\"border-radius: 0;\"><span><strong class=\"smalltext\">{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong>&nbsp;<span class=\"smalltext\">[{\$lang->tyltoplist_desc} {\$tlprefix}]</span></span></td></tr></thead><tbody><tr><td class=\"tfoot\" width=\"5%\" style=\"text-align:center;padding: 2px 6px;\"><span class=\"smalltext\">{\$lang->table_header_place}</span></td><td class=\"tfoot\" width=\"80%\" style=\"padding: 2px 6px;\"><span class=\"smalltext\">{\$lang->table_header_post}</span></td><td class=\"tfoot\" width=\"5%\" style=\"text-align:center;padding: 2px 6px;\"><span class=\"smalltext\">{\$tlprefix}</span></td><td class=\"tfoot\" width=\"10%\" style=\"text-align:right;padding: 2px 6px;\"><span class=\"smalltext\">{\$lang->table_header_autor}</span></td></tr>{\$tlTable}</tbody></table></td></tr>",
-				"sid" => -2
-	);
-	$db->insert_query("templates", $templatearray);
+    if($db->fetch_field($query, 'prefix'))
+    {
+        $db->update_query('templategroups', $group, "prefix='{$group['prefix']}'");
+    }
+    else
+    {
+        $db->insert_query('templategroups', $group);
+    }
 
-	$templatearray = array(
-		"title" => "tyltoplist_fstats_view",
-		"template" => "<br/><table border=\"0\" cellspacing=\"{\$theme[\'borderwidth\']}\" cellpadding=\"{\$theme[\'tablespace\']}\" class=\"tborder\" width=\"100%\"><thead><tr><td class=\"thead\" colspan=\"4\"><div><strong>{\$lang->tyltoplist_header} {\$mybb->settings[\'tyltoplist_limit\']} {\$tlprefix}</strong><br /><div class=\"smalltext\">{\$lang->tyltoplist_desc} {\$tlprefix}</div></div></td></tr></thead><tbody><tr><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$lang->table_header_place}</strong></td><td class=\"tcat\" width=\"80%\"><strong>{\$lang->table_header_post}</strong></td><td class=\"tcat\" width=\"5%\" style=\"text-align:center;\"><strong>{\$tlprefix}</strong></td><td class=\"tcat\" width=\"10%\" style=\"text-align:right;\"><strong>{\$lang->table_header_autor}</strong></td></tr>{\$tlTable}</tbody></table>",
-				"sid" => -2
-	);
-	$db->insert_query("templates", $templatearray);
+    $query = $db->simple_select('templates', 'tid,title,template', "sid=-2 AND (title='{$group['prefix']}' OR title LIKE '{$group['prefix']}=_%' ESCAPE '=')");
 
-	$query_add = $db->simple_select("settinggroups", "COUNT(*) as counts");
-	$rows = $db->fetch_field($query_add, "counts");
-	$tyltoplist_group = array(
-		"name" 			=>	"tyltoplist_settings",
-		"title" 		=>	$db->escape_string($lang->tyltoplist_settings_title),
-		"description" 	=>	$db->escape_string($lang->tyltoplist_settings_title_desc),
-		"disporder"		=> 	$rows+1,
-		"isdefault" 	=>  0
-	);
-	$db->insert_query("settinggroups", $tyltoplist_group);
-	$gid = $db->insert_id();
+    $templates = $duplicates = array();
 
-	$tyltoplist_1 = array(
-		'name'			=> 'tyltoplist_enable',
-		'title'			=> $db->escape_string($lang->tyltoplist_enable_title),
-		'description'  	=> $db->escape_string($lang->tyltoplist_enable_title_desc),
-		'optionscode'  	=> 'yesno',
-		'value'        	=> '1',
-		'disporder'		=> 1,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query('settings', $tyltoplist_1);
+    while($row = $db->fetch_array($query))
+    {
+        $title = $row['title'];
+        $row['tid'] = (int)$row['tid'];
+
+        if(isset($templates[$title]))
+        {
+            $duplicates[] = $row['tid'];
+            $templates[$title]['template'] = false;
+        }
+        else
+        {
+            $templates[$title] = $row;
+        }
+    }
+
+    if($duplicates)
+    {
+        $db->delete_query('templates', 'tid IN ('.implode(",", $duplicates).')');
+    }
+
+    foreach($templatearray as $name => $code)
+    {
+        if(strlen($name))
+        {
+            $name = "tyltoplist_{$name}";
+        }
+        else
+        {
+            $name = "tyltoplist";
+        }
+
+        $template = array(
+            'title' => $db->escape_string($name),
+            'template' => $db->escape_string($code),
+            'version' => 1,
+            'sid' => -2,
+            'dateline' => TIME_NOW
+        );
+
+        if(isset($templates[$name]))
+        {
+            if($templates[$name]['template'] !== $code)
+            {
+                $db->update_query('templates', array('version' => 0), "title='{$template['title']}'");
+                $db->update_query('templates', $template, "tid={$templates[$name]['tid']}");
+            }
+        }
+        else
+        {
+            $db->insert_query('templates', $template);
+        }
+
+        unset($templates[$name]);
+    }
+
+    foreach($templates as $name => $row)
+    {
+        $db->delete_query('templates', "title='{$db->escape_string($name)}'");
+    }
 
 
-	$tyltoplist_2 = array(
-		"name"			=> "tyltoplist_limit",
-		"title"			=> $db->escape_string($lang->tyltoplist_limit_title),
-		"description" 	=> $db->escape_string($lang->tyltoplist_limit_title_desc),
-		'optionscode'  	=> 'numeric',
-		'value'        	=> '20',
-		"disporder"		=> 2,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query("settings", $tyltoplist_2);
+    // Settings
+    $group = array(
+        'name' => 'tyltoplist',
+        'title' => $db->escape_string($lang->setting_group_tyltoplist),
+        'description' => $db->escape_string($lang->setting_group_tyltoplist_desc),
+        'isdefault' => 0
+    );
 
-	$tyltoplist_3 = array(
-		'name'			=> 'tyltoplist_styled_usernames',
-		'title'			=> $db->escape_string($lang->tyltoplist_styled_usernames_title),
-		'description'  	=> $db->escape_string($lang->tyltoplist_styled_usernames_title_desc),
-		'optionscode'  	=> 'yesno',
-		'value'        	=> '0',
-		'disporder'		=> 3,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query('settings', $tyltoplist_3);
+    $query = $db->simple_select('settinggroups', 'gid', "name='tyltoplist'");
 
-	$tyltoplist_4 = array(
-		"name"			=> "tyltoplist_groupselect",
-		"title"			=> $db->escape_string($lang->tyltoplist_groupselect_title),
-		"description" 	=> $db->escape_string($lang->tyltoplist_groupselect_title_desc),
-		'optionscode'  	=> 'groupselect',
-		'value'        	=> '-1',
-		"disporder"		=> 4,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query("settings", $tyltoplist_4);
+    if($gid = (int)$db->fetch_field($query, 'gid'))
+    {
+        $db->update_query('settinggroups', $group, "gid='{$gid}'");
+    }
+    else
+    {
+        $query = $db->simple_select('settinggroups', 'MAX(disporder) AS disporder');
+        $disporder = (int)$db->fetch_field($query, 'disporder');
 
-	$tyltoplist_5 = array(
-		"name"			=> "tyltoplist_fidsout",
-		"title"			=> $db->escape_string($lang->tyltoplist_fidsout_title),
-		"description" 	=> $db->escape_string($lang->tyltoplist_fidsout_title_desc),
-		'optionscode'  	=> 'forumselect',
-		'value'        	=> '',
-		"disporder"		=> 5,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query("settings", $tyltoplist_5);
+        $group['disporder'] = ++$disporder;
 
-	$tyltoplist_6 = array(
-		"name"			=> "tyltoplist_show_where",
-		"title"			=> $db->escape_string($lang->tyltoplist_show_where_title),
-		"description" 	=> $db->escape_string($lang->tyltoplist_show_where_title_desc),
-		'optionscode'  	=> 'radio \n 1='.$db->escape_string($lang->tyltoplist_show_where_page).' \n 2='.$db->escape_string($lang->tyltoplist_show_where_boardstats).' \n 3='.$db->escape_string($lang->tyltoplist_show_where_forumstats).'',
-		'value'        	=> '1',
-		"disporder"		=> 6,
-		"gid" 			=> (int)$gid
-	);
-	$db->insert_query("settings", $tyltoplist_6);
-	rebuild_settings();
+        $gid = (int)$db->insert_query('settinggroups', $group);
+    }
 
-	require_once MYBB_ROOT."inc/adminfunctions_templates.php";
-	find_replace_templatesets("index_boardstats", '#{\$forumstats}(\r?)\n#', "{\$forumstats}\n{\$tyltoplist_bstats}\n");
-	find_replace_templatesets("stats", '#{\$footer}(\r?)\n#', "{\$tyltoplist_fstats}\n{\$footer}\n");
+    $settings = array(
+        'enable' => array(
+            'optionscode' => 'yesno',
+            'value' => 1
+            ),
+        'limit' => array(
+            'optionscode' => 'numeric \n min=0',
+            'value' => 20
+            ),
+        'usernames' => array(
+            'optionscode' => 'yesno',
+            'value' => 1
+            ),
+        'group' => array(
+            'optionscode' => 'groupselect',
+            'value' => '-1',
+            ),
+        'fids' => array(
+            'optionscode' => 'forumselect',
+            'value' => '',
+            ),
+        'show' => array(
+            'optionscode' => 'radio \n 1='.$db->escape_string($lang->setting_tyltoplist_show_1).' \n 2='.$db->escape_string($lang->setting_tyltoplist_show_2).' \n 3='.$db->escape_string($lang->setting_tyltoplist_show_3),
+            'value' => 1,
+            )
+        );
+
+    $disporder = 0;
+
+    foreach($settings as $key => $setting)
+    {
+        $key = "tyltoplist_{$key}";
+
+        $setting['name'] = $db->escape_string($key);
+
+        $lang_var_title = "setting_{$key}";
+        $lang_var_description = "setting_{$key}_desc";
+
+        $setting['title'] = $db->escape_string($lang->{$lang_var_title});
+        $setting['description'] = $db->escape_string($lang->{$lang_var_description});
+        $setting['disporder'] = $disporder;
+        $setting['gid'] = $gid;
+
+        $db->insert_query('settings', $setting);
+        ++$disporder;
+    }
+
+    rebuild_settings();
+
+    require_once MYBB_ROOT."inc/adminfunctions_templates.php";
+    find_replace_templatesets("index_boardstats", '#{\$forumstats}(\r?)\n#', "{\$forumstats}\n{\$tyltoplist}\n");
+    find_replace_templatesets("stats", '#{\$footer}(\r?)\n#', "{\$tyltoplist}\n{\$footer}\n");
 }
 
 function tyltoplist_deactivate()
 {
-	global $db;
+    global $db;
 
-	$templatearray = array(
-		"tyltoplist_view",
-		"tyltoplist_disabled",
-		"tyltoplist_bstats_view",
-		"tyltoplist_fstats_view"
-	);
-	$deltemplates = implode("','", $templatearray);
-	$db->delete_query("templates", "title in ('{$deltemplates}')");
-	$db->delete_query("templategroups", "prefix in ('tyltoplist')");
+    $db->delete_query('templategroups', "prefix='tyltoplist'");
+    $db->delete_query('templates', "title='tyltoplist' OR title LIKE 'tyltoplist_%'");
 
-	$result = $db->simple_select('settinggroups', 'gid', "name = 'tyltoplist_settings'", array('limit' => 1));
-	$tyl_group = $db->fetch_array($result);
+    $result = $db->simple_select('settinggroups', 'gid', "name = 'tyltoplist'", array('limit' => 1));
+    $tyl_group = $db->fetch_array($result);
 
-	if(!empty($tyl_group['gid']))
-	{
-		$db->delete_query('settinggroups', "gid='{$tyl_group['gid']}'");
-		$db->delete_query('settings', "gid='{$tyl_group['gid']}'");
-		rebuild_settings();
-	}
+    if(!empty($tyl_group['gid']))
+    {
+        $db->delete_query('settinggroups', "gid='{$tyl_group['gid']}'");
+        $db->delete_query('settings', "gid='{$tyl_group['gid']}'");
+        rebuild_settings();
+    }
 
-	require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
-	find_replace_templatesets("index_boardstats", '#{\$tyltoplist_bstats}(\r?)\n#', "", 0);
-	find_replace_templatesets("stats", '#{\$tyltoplist_fstats}(\r?)\n#', "", 0);
+    require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
+    find_replace_templatesets("index_boardstats", '#{\$tyltoplist}(\r?)\n#', "", 0);
+    find_replace_templatesets("stats", '#{\$tyltoplist}(\r?)\n#', "", 0);
+}
+
+function tyltoplist_settings()
+{
+    global $lang;
+    $lang->load('config_tyltoplist');
+}
+
+function tyltoplist_hooks()
+{
+    global $plugins, $mybb;
+
+    if($mybb->settings['tyltoplist_enable'] != 1 || !is_member($mybb->settings['tyltoplist_group']) || $mybb->settings['tyltoplist_fids'] == '-1')
+    {
+        return;
+    }
+
+    if(defined('THIS_SCRIPT'))
+    {
+        global $templatelist;
+
+        if(isset($templatelist))
+        {
+            $templatelist .= ',';
+        }
+
+        switch($mybb->settings['tyltoplist_show'])
+        {
+            case 1:
+                if(THIS_SCRIPT == 'tyltoplist.php')
+                {
+                    $templatelist .= 'tyltoplist_page_view, tyltoplist_row';
+                }
+                break;
+            case 2:
+                if(THIS_SCRIPT == 'index.php')
+                {
+                    $plugins->add_hook('index_start','tyltoplist_stats');
+                    $templatelist .= 'tyltoplist_index_view, tyltoplist_row';
+                }
+                break;
+            case 3:
+                if(THIS_SCRIPT == 'stats.php')
+                {
+                    $plugins->add_hook('stats_start','tyltoplist_stats');
+                    $templatelist .= 'tyltoplist_stats_view, tyltoplist_row';
+                }
+                break;
+        }
+    }
 }
 
 function tyltoplist_stats()
 {
-	global $mybb;
+    global $mybb, $db, $templates, $theme, $lang, $tyltoplist;
 
-	if ($mybb->settings['tyltoplist_show_where'] != 1)
-	{
-		if(is_member($mybb->settings['tyltoplist_groupselect']) OR ($mybb->settings['tyltoplist_groupselect'] == "-1"))
-		{
-			global $settings, $db,$templates,$theme,$lang,$parser,$tyltoplist_bstats,$tyltoplist_fstats;
+    $lang->load("tyltoplist");
+    $tyltoplist = "";
+    $tlprefix = $mybb->settings['g33k_thankyoulike_thankslike'] == "thanks" ? $lang->tyltoplist_table_prefix_thanks : $lang->tyltoplist_table_prefix_likes;
 
-			$lang->load("tyltoplist");
+    $lang->tyltoplist_header = $db->escape_string($lang->sprintf($lang->tyltoplist_header, (int)$mybb->settings['tyltoplist_limit'], $tlprefix));
+    $lang->tyltoplist_header_desc = $db->escape_string($lang->sprintf($lang->tyltoplist_header_desc, $tlprefix));
 
-			if ($settings['g33k_thankyoulike_thankslike'] == "thanks")
-			{
-				$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_thanks);
-			}
-			else
-			{
-				$tlprefix = $db->escape_string($lang->tyltoplist_table_prefix_likes);
-			}
+    $tlTable = tyltoplist_build_rows();
 
-			if ($settings['tyltoplist_limit'] < 1)
-			{
-				$settings['tyltoplist_limit'] = 20;
-			}
+    switch($mybb->settings['tyltoplist_show'])
+    {
+        case 2:
+            eval("\$tyltoplist = \"".$templates->get("tyltoplist_index_view")."\";");
+            break;
+        case 3:
+            eval("\$tyltoplist = \"".$templates->get("tyltoplist_stats_view")."\";");
+            break;
+    }
+}
 
-			if ($mybb->settings['tyltoplist_enable'] == 1 && $settings['tyltoplist_fidsout'] != -1)
-			{
-				$tlTable = "";
-				$tyltoplist_unviewwhere = "";
-				$tyltoplist_unviewable = get_unviewable_forums();
-				if($tyltoplist_unviewable)
-				{
-					$tyltoplist_unviewwhere = "AND fid NOT IN ({$tyltoplist_unviewable})";
-				}
-				$tyltoplist_fidsoutlist = "";
-				if(!empty($settings['tyltoplist_fidsout']))
-				{
-					$tyltoplist_fidsoutlist = "AND p.fid NOT IN ({$settings['tyltoplist_fidsout']})";
-				}
-				$tul = $db->query("SELECT l.pid, count( * ) AS likes, p.subject, p.username, p.uid, p.fid, p.tid, u.usergroup, u.displaygroup
-									FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
-									LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
-									LEFT JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
-									WHERE visible='1' {$tyltoplist_unviewwhere} {$tyltoplist_fidsoutlist}
-									GROUP BY l.pid
-									ORDER BY likes DESC, l.pid ASC
-									LIMIT 0,{$settings['tyltoplist_limit']}");
-				$maxplace = $tul->num_rows;
-				$iPlace = 1;
+function tyltoplist_build_rows()
+{
+    global $mybb, $db, $templates;
 
-				if ($mybb->settings['tyltoplist_show_where'] == 2)
-				{
-					while ($data = $db->fetch_array($tul))
-					{
-					$tyltoplist_username = htmlspecialchars_uni($data['username']);
-					if ($settings['tyltoplist_styled_usernames'] == 1)
-					{
-						$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
-					}
-					else
-					{
-						$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
-					}
-					$tlTable = $tlTable . '<tr><td class="trow1 smalltext" valign="middle" align="center">' . $iPlace . '</td><td class="trow1 smalltext" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '"><strong>' . htmlspecialchars_uni($parser->parse_badwords($data['subject'])) . '</strong></a></td><td class="trow1 smalltext" valign="middle" align="center">' . $data['likes'] . '</td><td class="trow1 smalltext" valign="middle" align="right">' . $tyltoplist_userlink . '</td></tr>';
-					$iPlace++;
-					}
-					eval("\$tyltoplist_bstats = \"".$templates->get("tyltoplist_bstats_view")."\";");
-					return $tyltoplist_bstats;
-				}
-				else
-				{
-					while ($data = $db->fetch_array($tul))
-					{
-					$tyltoplist_username = htmlspecialchars_uni($data['username']);
-					if ($settings['tyltoplist_styled_usernames'] == 1)
-					{
-						$tyltoplist_userlink = build_profile_link(format_name($tyltoplist_username, $data['usergroup'], $data['displaygroup']), $data['uid']);
-					}
-					else
-					{
-						$tyltoplist_userlink = build_profile_link($tyltoplist_username, $data['uid']);
-					}
-					$tlTable = $tlTable . '<tr><td class="trow1" valign="middle" align="center">' . $iPlace . '</td><td class="trow1" valign="middle"><a href="' . $mybb->settings['bburl'] . '/showthread.php?tid='.$data['tid'].'&amp;pid='.$data['pid'].'#pid'.$data['pid'] . '"><strong>' . htmlspecialchars_uni($parser->parse_badwords($data['subject'])) . '</strong></a></td><td class="trow1" valign="middle" align="center">' . $data['likes'] . '</td><td class="trow1" valign="middle" align="right">' . $tyltoplist_userlink . '</td></tr>';
-					$iPlace++;
-					}
-					eval("\$tyltoplist_fstats = \"".$templates->get("tyltoplist_fstats_view")."\";");
-					return $tyltoplist_fstats;
-				}
-			}
-		}
-	}
+    if ($mybb->settings['tyltoplist_limit'] < 1)
+    {
+        $mybb->settings['tyltoplist_limit'] = 20;
+    }
+
+    $where = "WHERE p.visible=1";
+    $unviewable = get_unviewable_forums();
+    if($unviewable)
+    {
+        $where .= " AND p.fid NOT IN ($unviewable)";
+    }
+    $inactive = get_inactive_forums();
+    if($inactive)
+    {
+        $where .= " AND p.fid NOT IN ($inactive)";
+    }
+
+    $tids = tyltoplist_restricted_threads();
+    if($tids)
+    {
+        $where .= " AND p.tid NOT IN ($tids)";
+    }
+
+    if(!empty($mybb->settings['tyltoplist_fids']) && $mybb->settings['tyltoplist_fids'] != '-1')
+    {
+        $where .= " AND p.fid NOT IN ({$mybb->settings['tyltoplist_fids']})";
+    }
+
+    $query = $db->query("
+        SELECT l.pid, COUNT(*) AS likes, p.subject, p.username, p.uid, p.fid, p.tid, u.usergroup, u.displaygroup
+        FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
+        LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
+        LEFT JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
+        {$where}
+        GROUP BY l.pid
+        ORDER BY likes DESC, l.pid ASC
+        LIMIT 0,{$mybb->settings['tyltoplist_limit']}
+    ");
+
+    $i = 1;
+    while ($results = $db->fetch_array($query))
+    {
+        $altbg = alt_trow();
+        if ($mybb->settings['tyltoplist_usernames'] == 1)
+        {
+            $userlink = build_profile_link(format_name(htmlspecialchars_uni($results['username']), $results['usergroup'], $results['displaygroup']), $results['uid']);
+        }
+        else
+        {
+            $userlink = build_profile_link(htmlspecialchars_uni($results['username']), $results['uid']);
+        }
+        $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
+        $postlink = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
+        $postsubject = htmlspecialchars_uni($results['subject']);
+        $likes = (int)$results['likes'];
+
+        eval("\$rows .= \"".$templates->get("tyltoplist_row")."\";");
+        ++$i;
+    }
+
+    return $rows;
 }
 
 function tyltoplist_online(&$plugin_array)
 {
-	global $db, $lang;
-	$lang->load("tyltoplist");
-	if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php'))
-	{
-		$plugin_array['location_name'] = $lang->sprintf($db->escape_string($lang->tyltoplist_online), '<a href="' . $mybb->settings['bburl'] . '/tyltoplist.php">TYL-Toplist</a>');
-	}
+    global $db, $lang;
+    $lang->load("tyltoplist");
+    if(my_strpos($plugin_array['user_activity']['location'],'tyltoplist.php'))
+    {
+        $plugin_array['location_name'] = $lang->sprintf($db->escape_string($lang->tyltoplist_online), '<a href="' . $mybb->settings['bburl'] . '/tyltoplist.php">TYL-Toplist</a>');
+    }
+}
+
+function tyltoplist_restricted_threads($uid=0)
+{
+    global $mybb, $db;
+
+    if($uid == 0)
+    {
+        $uid = $mybb->user['uid'];
+    }
+
+    $onlyusfids = $restricted_threads= array();
+
+    $group_permissions = forum_permissions();
+    foreach($group_permissions as $fid => $forum_permissions)
+    {
+        if(isset($forum_permissions['canonlyviewownthreads']) && $forum_permissions['canonlyviewownthreads'] == 1)
+        {
+            $onlyusfids[] = $fid;
+        }
+    }
+    if(!empty($onlyusfids))
+    {
+        $query = $db->simple_select("threads", "tid", "fid IN(".implode(',', $onlyusfids).") AND uid !='{$uid}'");
+        while($thread = $db->fetch_array($query))
+        {
+            $restricted_threads[] = $thread['tid'];
+        }
+    }
+
+    $tids = implode(',', $restricted_threads);
+
+    return $tids;
 }
