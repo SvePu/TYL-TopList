@@ -443,18 +443,18 @@ function tyltoplist_build_rows()
     }
 
     $query = $db->query("
-        SELECT l.pid, COUNT(*) AS likes, p.subject, p.username, p.uid, p.fid, p.tid, u.usergroup, u.displaygroup
+        SELECT l.pid, COUNT(*) AS likes, p.subject, p.username, p.uid, p.tid, u.usergroup, u.displaygroup
         FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
+        INNER JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
         LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
-        LEFT JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
         {$where}
-        GROUP BY l.pid
+        GROUP BY p.pid
         ORDER BY likes DESC, l.pid ASC
         LIMIT 0,{$mybb->settings['tyltoplist_limit']}
     ");
 
     $i = 1;
-    while ($results = $db->fetch_array($query))
+    while($results = $db->fetch_array($query))
     {
         $altbg = alt_trow();
         if ($mybb->settings['tyltoplist_usernames'] == 1)
@@ -468,7 +468,7 @@ function tyltoplist_build_rows()
         $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
         $postlink = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
         $postsubject = htmlspecialchars_uni($results['subject']);
-        $likes = (int)$results['likes'];
+        $likes = my_number_format((int)$results['likes']);
 
         eval("\$rows .= \"".$templates->get("tyltoplist_row")."\";");
         ++$i;
