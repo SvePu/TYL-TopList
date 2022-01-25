@@ -2,7 +2,7 @@
 /*
     Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
     Copyright © 2019 Svepu
-    Last change: 2022-01-24 - v2.0
+    Last change: 2022-01-25 - v2.0
 */
 
 if(!defined('IN_MYBB'))
@@ -103,6 +103,9 @@ function tyltoplist_activate()
     <td class="{$altbg}"><span{$styleclass}><a href="{$postlink}"><strong>{$postsubject}</strong></a></span></td>
     <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$likes}</span></td>
     <td class="{$altbg}" style="text-align:right;"><span{$styleclass}>{$userlink}</span></td>
+</tr>',
+    'row_empty' => '<tr>
+    <td class="trow1" colspan="4"><span{$styleclass}>{$lang->tyltoplist_no_entries}</span></td>
 </tr>',
     'index_view' => '<tr>
     <td style="padding: 0;">
@@ -342,6 +345,17 @@ function tyltoplist_settings()
     $lang->load('config_tyltoplist');
 }
 
+// Delete function momentary not included by default in MyBB.
+function tyltoplist_delete()
+{
+    return array(
+        'inc/languages/{lang}/admin/config_tyltoplist.lang.php',
+        'inc/languages/{lang}/tyltoplist.lang.php',
+        'inc/plugins/tyltoplist.php',
+        'tyltoplist.php',
+    );
+}
+
 function tyltoplist_hooks()
 {
     global $plugins, $mybb;
@@ -365,21 +379,21 @@ function tyltoplist_hooks()
             case 1:
                 if(THIS_SCRIPT == 'tyltoplist.php')
                 {
-                    $templatelist .= 'tyltoplist_page_view, tyltoplist_row';
+                    $templatelist .= 'tyltoplist_page_view, tyltoplist_row, tyltoplist_row_empty';
                 }
                 break;
             case 2:
                 if(THIS_SCRIPT == 'index.php')
                 {
                     $plugins->add_hook('index_start','tyltoplist_stats');
-                    $templatelist .= 'tyltoplist_index_view, tyltoplist_row';
+                    $templatelist .= 'tyltoplist_index_view, tyltoplist_row, tyltoplist_row_empty';
                 }
                 break;
             case 3:
                 if(THIS_SCRIPT == 'stats.php')
                 {
                     $plugins->add_hook('stats_start','tyltoplist_stats');
-                    $templatelist .= 'tyltoplist_stats_view, tyltoplist_row';
+                    $templatelist .= 'tyltoplist_stats_view, tyltoplist_row, tyltoplist_row_empty';
                 }
                 break;
         }
@@ -412,11 +426,12 @@ function tyltoplist_stats()
 
 function tyltoplist_build_rows()
 {
-    global $mybb, $db, $templates;
+    global $mybb, $db, $templates, $lang;
 
+    $limit = (int)$mybb->settings['tyltoplist_limit'];
     if ($mybb->settings['tyltoplist_limit'] < 1)
     {
-        $mybb->settings['tyltoplist_limit'] = 20;
+        $limit = 20;
     }
 
     $where = "WHERE p.visible=1";
@@ -450,28 +465,37 @@ function tyltoplist_build_rows()
         {$where}
         GROUP BY p.pid
         ORDER BY likes DESC, l.pid ASC
-        LIMIT 0,{$mybb->settings['tyltoplist_limit']}
+        LIMIT 0,{$limit}
     ");
 
     $i = 1;
-    while($results = $db->fetch_array($query))
-    {
-        $altbg = alt_trow();
-        if ($mybb->settings['tyltoplist_usernames'] == 1)
-        {
-            $userlink = build_profile_link(format_name(htmlspecialchars_uni($results['username']), $results['usergroup'], $results['displaygroup']), $results['uid']);
-        }
-        else
-        {
-            $userlink = build_profile_link(htmlspecialchars_uni($results['username']), $results['uid']);
-        }
-        $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
-        $postlink = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
-        $postsubject = htmlspecialchars_uni($results['subject']);
-        $likes = my_number_format((int)$results['likes']);
+    $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
 
-        eval("\$rows .= \"".$templates->get("tyltoplist_row")."\";");
-        ++$i;
+    if($db->num_rows($query) > 0)
+    {
+        while($results = $db->fetch_array($query))
+        {
+            $altbg = alt_trow();
+            if ($mybb->settings['tyltoplist_usernames'] == 1)
+            {
+                $userlink = build_profile_link(format_name(htmlspecialchars_uni($results['username']), $results['usergroup'], $results['displaygroup']), $results['uid']);
+            }
+            else
+            {
+                $userlink = build_profile_link(htmlspecialchars_uni($results['username']), $results['uid']);
+            }
+
+            $postlink = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
+            $postsubject = htmlspecialchars_uni($results['subject']);
+            $likes = my_number_format((int)$results['likes']);
+
+            eval("\$rows .= \"".$templates->get("tyltoplist_row")."\";");
+            ++$i;
+        }
+    }
+    else
+    {
+        eval("\$rows = \"".$templates->get("tyltoplist_row_empty")."\";");
     }
 
     return $rows;

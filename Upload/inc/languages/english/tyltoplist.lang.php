@@ -3,7 +3,7 @@
 	Language file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: english
 	Copyright © 2015 Svepu
-	Last change: 2022-01-24
+	Last change: 2022-01-25
 */
 
 $l['tyltoplist'] = 'ThankYou/Like Top List';
@@ -14,6 +14,8 @@ $l['tyltoplist_header_desc'] = 'The following posts have the most {1}';
 $l['table_header_number'] = 'Number';
 $l['table_header_post'] = 'Post';
 $l['table_header_autor'] = 'Postauthor';
+
+$l['tyltoplist_no_entries'] = 'Unfortunately, there are no entries for the criteria you set.';
 
 $l['tyltoplist_disabled'] = 'Sorry, the desired list can not be displayed! - The administrator has disabled this functionality in the forums settings.';
 $l['tyltoplist_redirect_title'] = 'Single TYL-TopList site is deactivated - You will redirect....';

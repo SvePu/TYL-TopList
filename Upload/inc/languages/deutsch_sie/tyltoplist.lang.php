@@ -2,8 +2,8 @@
 /*
 	Language file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: deutsch_sie
-	CCopyright © 2015 Svepu
-	Last change: 2022-01-24
+	Copyright © 2015 Svepu
+	Last change: 2022-01-25
 */
 
 $l['tyltoplist'] = 'ThankYou/Like Top Liste';
@@ -14,6 +14,8 @@ $l['tyltoplist_header_desc'] = 'Die folgenden Beiträge erhielten die meisten {1
 $l['table_header_number'] = 'Anzahl';
 $l['table_header_post'] = 'Beitrag';
 $l['table_header_autor'] = 'Beitragsautor';
+
+$l['tyltoplist_no_entries'] = 'Leider sind momentan keine Einträge für die gesetzten Kriterien vorhanden.';
 
 $l['tyltoplist_disabled'] = 'Sorry, die gewünschte Liste kann leider nicht angezeigt werden! - Der Administrator hat diese Funktion in den Foreneinstellungen deaktiviert.';
 $l['tyltoplist_redirect_title'] = 'Einzelne TopList-Seite ist deaktiviert - Sie werden weitergeleitet....';
