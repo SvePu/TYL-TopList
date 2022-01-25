@@ -435,7 +435,7 @@ function tyltoplist_build_rows()
     }
 
     $where = "WHERE p.visible=1";
-    $unviewable = get_unviewable_forums();
+    $unviewable = get_unviewable_forums(true);
     if($unviewable)
     {
         $where .= " AND p.fid NOT IN ($unviewable)";
@@ -446,10 +446,18 @@ function tyltoplist_build_rows()
         $where .= " AND p.fid NOT IN ($inactive)";
     }
 
-    $tids = tyltoplist_restricted_threads();
-    if($tids)
+    $onlyusfids = array();
+    $group_permissions = forum_permissions();
+    foreach($group_permissions as $fid => $forum_permissions)
     {
-        $where .= " AND p.tid NOT IN ($tids)";
+        if(isset($forum_permissions['canonlyviewownthreads']) && $forum_permissions['canonlyviewownthreads'] == 1)
+        {
+            $onlyusfids[] = $fid;
+        }
+    }
+    if(!empty($onlyusfids))
+    {
+        $where .= " AND ((p.fid IN(".implode(',', $onlyusfids).") AND p.uid='{$mybb->user['uid']}') OR p.fid NOT IN(".implode(',', $onlyusfids)."))";
     }
 
     if(!empty($mybb->settings['tyltoplist_fids']) && $mybb->settings['tyltoplist_fids'] != '-1')
@@ -509,37 +517,4 @@ function tyltoplist_online(&$plugin_array)
     {
         $plugin_array['location_name'] = $lang->sprintf($db->escape_string($lang->tyltoplist_online), '<a href="' . $mybb->settings['bburl'] . '/tyltoplist.php">TYL-Toplist</a>');
     }
-}
-
-function tyltoplist_restricted_threads($uid=0)
-{
-    global $mybb, $db;
-
-    if($uid == 0)
-    {
-        $uid = $mybb->user['uid'];
-    }
-
-    $onlyusfids = $restricted_threads= array();
-
-    $group_permissions = forum_permissions();
-    foreach($group_permissions as $fid => $forum_permissions)
-    {
-        if(isset($forum_permissions['canonlyviewownthreads']) && $forum_permissions['canonlyviewownthreads'] == 1)
-        {
-            $onlyusfids[] = $fid;
-        }
-    }
-    if(!empty($onlyusfids))
-    {
-        $query = $db->simple_select("threads", "tid", "fid IN(".implode(',', $onlyusfids).") AND uid !='{$uid}'");
-        while($thread = $db->fetch_array($query))
-        {
-            $restricted_threads[] = $thread['tid'];
-        }
-    }
-
-    $tids = implode(',', $restricted_threads);
-
-    return $tids;
 }
