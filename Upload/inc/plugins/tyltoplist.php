@@ -58,9 +58,15 @@ function tyltoplist_activate()
 
     $lang->load("config_tyltoplist");
 
-    if($mybb->settings['g33k_thankyoulike_enabled'] != "1")
+    if(!isset($mybb->settings['g33k_thankyoulike_enabled']) || !$db->table_exists('g33k_thankyoulike_thankyoulike'))
     {
         flash_message("{$lang->mainplugin_req}", "error");
+        admin_redirect("index.php?module=config-plugins");
+    }
+
+    if(!$db->field_exists('tyl_pnumtyls', 'posts'))
+    {
+        flash_message("{$lang->update_mainplugin_req}", "error");
         admin_redirect("index.php?module=config-plugins");
     }
 
@@ -434,16 +440,16 @@ function tyltoplist_build_rows()
         $limit = 20;
     }
 
-    $where = "WHERE p.visible=1";
+    $where = "WHERE visible=1 AND tyl_pnumtyls > 0";
     $unviewable = get_unviewable_forums(true);
     if($unviewable)
     {
-        $where .= " AND p.fid NOT IN ($unviewable)";
+        $where .= " AND fid NOT IN ($unviewable)";
     }
     $inactive = get_inactive_forums();
     if($inactive)
     {
-        $where .= " AND p.fid NOT IN ($inactive)";
+        $where .= " AND fid NOT IN ($inactive)";
     }
 
     $onlyusfids = array();
@@ -457,30 +463,34 @@ function tyltoplist_build_rows()
     }
     if(!empty($onlyusfids))
     {
-        $where .= " AND ((p.fid IN(".implode(',', $onlyusfids).") AND p.uid='{$mybb->user['uid']}') OR p.fid NOT IN(".implode(',', $onlyusfids)."))";
+        $where .= " AND ((fid IN(".implode(',', $onlyusfids).") AND uid='{$mybb->user['uid']}') OR fid NOT IN(".implode(',', $onlyusfids)."))";
     }
 
     if(!empty($mybb->settings['tyltoplist_fids']) && $mybb->settings['tyltoplist_fids'] != '-1')
     {
-        $where .= " AND p.fid NOT IN ({$mybb->settings['tyltoplist_fids']})";
+        $where .= " AND fid NOT IN ({$mybb->settings['tyltoplist_fids']})";
     }
 
-    $query = $db->query("
-        SELECT l.pid, COUNT(*) AS likes, p.subject, p.username, p.uid, p.tid, u.usergroup, u.displaygroup
-        FROM ".TABLE_PREFIX."g33k_thankyoulike_thankyoulike l
-        INNER JOIN ".TABLE_PREFIX."posts p ON (l.pid=p.pid)
-        LEFT JOIN ".TABLE_PREFIX."users u ON (l.puid=u.uid)
-        {$where}
-        GROUP BY p.pid
-        ORDER BY likes DESC, l.pid ASC
-        LIMIT 0,{$limit}
-    ");
-
-    $i = 1;
-    $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
-
-    if($db->num_rows($query) > 0)
+    $posts = array();
+    $query = $db->query("SELECT pid FROM ".TABLE_PREFIX."posts {$where} ORDER BY tyl_pnumtyls DESC, pid ASC LIMIT 0,{$limit}");
+    while($post = $db->fetch_array($query))
     {
+        $posts[$post['pid']] = $post;
+    }
+
+    if(!empty($posts))
+    {
+        $i = 1;
+        $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
+
+        $query = $db->query("
+            SELECT p.pid, p.tyl_pnumtyls AS likes, p.subject, p.username, p.uid, p.tid, u.usergroup, u.displaygroup
+            FROM ".TABLE_PREFIX."posts p
+            INNER JOIN ".TABLE_PREFIX."users u ON (p.uid=u.uid)
+            WHERE p.pid IN (".implode(',', array_keys($posts)).")
+            ORDER BY likes DESC, p.pid ASC
+        ");
+
         while($results = $db->fetch_array($query))
         {
             $altbg = alt_trow();
