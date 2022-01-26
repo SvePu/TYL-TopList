@@ -69,6 +69,10 @@ function tyltoplist_install()
         flash_message("{$lang->update_mainplugin_req}", "error");
         admin_redirect("index.php?module=config-plugins");
     }
+    else
+    {
+        $db->query("ALTER TABLE ".TABLE_PREFIX."posts ADD INDEX(`tyl_pnumtyls`)");
+    }
 
     // Templates
     $templatearray = array(
@@ -348,6 +352,11 @@ function tyltoplist_uninstall()
         $db->delete_query('settinggroups', "gid='{$tyl_group['gid']}'");
         $db->delete_query('settings', "gid='{$tyl_group['gid']}'");
         rebuild_settings();
+    }
+
+    if($db->field_exists('tyl_pnumtyls', 'posts'))
+    {
+        $db->query("ALTER TABLE ".TABLE_PREFIX."posts DROP INDEX `tyl_pnumtyls`");
     }
 
     require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
