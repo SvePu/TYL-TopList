@@ -52,7 +52,7 @@ function tyltoplist_info() {
     return $info;
 }
 
-function tyltoplist_activate()
+function tyltoplist_install()
 {
     global $db, $mybb, $lang;
 
@@ -323,7 +323,17 @@ function tyltoplist_activate()
     find_replace_templatesets("stats", '#{\$footer}(\r?)\n#', "{\$tyltoplist}\n{\$footer}\n");
 }
 
-function tyltoplist_deactivate()
+function tyltoplist_is_installed()
+{
+    global $mybb;
+    if(isset($mybb->settings['tyltoplist_enable']))
+    {
+        return true;
+    }
+    return false;
+}
+
+function tyltoplist_uninstall()
 {
     global $db;
 
@@ -343,6 +353,20 @@ function tyltoplist_deactivate()
     require_once MYBB_ROOT."/inc/adminfunctions_templates.php";
     find_replace_templatesets("index_boardstats", '#{\$tyltoplist}(\r?)\n#', "", 0);
     find_replace_templatesets("stats", '#{\$tyltoplist}(\r?)\n#', "", 0);
+}
+
+function tyltoplist_activate()
+{
+    global $db;
+    $db->update_query("settings", array("value" => 1), "name='tyltoplist_enable'", 1);
+    rebuild_settings();
+}
+
+function tyltoplist_deactivate()
+{
+    global $db;
+    $db->update_query("settings", array("value" => 0), "name='tyltoplist_enable'", 1);
+    rebuild_settings();
 }
 
 function tyltoplist_settings()
