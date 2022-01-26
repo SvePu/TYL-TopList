@@ -3,12 +3,13 @@
 	Language admin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 	Language: english
 	Copyright © 2015 Svepu
-	Last change: 2022-01-24
+	Last change: 2022-01-26
 */
 
 $l['tyltoplist'] = 'TopList addon for Thank You/Like System';
 $l['tyltoplist_desc'] = 'Thats an addon for the Thank You/Like System plugin.';
-$l['mainplugin_req'] = 'The required <a href="https://community.mybb.com/mods.php?action=view&pid=360" target="_blank">ThankYou/Like plugin</a> is not installed/activated!';
+$l['mainplugin_req'] = 'The required <a href="https://community.mybb.com/mods.php?action=view&pid=360" target="_blank">ThankYou/Like Plugin</a> is not installed/activated!';
+$l['update_mainplugin_req'] = 'Please update the <a href="https://community.mybb.com/mods.php?action=view&pid=360" target="_blank">ThankYou/Like Plugin</a> to a version higher/equal v.3.0.0!';
 
 $l['setting_group_tyltoplist'] = 'TYL-TopList Settings';
 $l['setting_group_tyltoplist_desc'] = 'Setting of the TYL-TopList plugin';
