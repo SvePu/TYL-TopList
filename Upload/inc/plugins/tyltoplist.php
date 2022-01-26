@@ -106,9 +106,9 @@ function tyltoplist_install()
 </html>',
     'row' => '<tr>
     <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$i}</span></td>
-    <td class="{$altbg}"><span{$styleclass}><a href="{$postlink}"><strong>{$postsubject}</strong></a></span></td>
-    <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$likes}</span></td>
-    <td class="{$altbg}" style="text-align:right;"><span{$styleclass}>{$userlink}</span></td>
+    <td class="{$altbg}"><span{$styleclass}><a href="{$results[\'postlink\']}"><strong>{$results[\'subject\']}</strong></a></span></td>
+    <td class="{$altbg}" style="text-align:center;"><span{$styleclass}>{$results[\'likes\']}</span></td>
+    <td class="{$altbg}" style="text-align:right;"><span{$styleclass}>{$results[\'userlink\']}</span></td>
 </tr>',
     'row_empty' => '<tr>
     <td class="trow1" colspan="4"><span{$styleclass}>{$lang->tyltoplist_no_entries}</span></td>
@@ -520,16 +520,16 @@ function tyltoplist_build_rows()
             $altbg = alt_trow();
             if ($mybb->settings['tyltoplist_usernames'] == 1)
             {
-                $userlink = build_profile_link(format_name(htmlspecialchars_uni($results['username']), $results['usergroup'], $results['displaygroup']), $results['uid']);
+                $results['userlink'] = build_profile_link(format_name(htmlspecialchars_uni($results['username']), $results['usergroup'], $results['displaygroup']), $results['uid']);
             }
             else
             {
-                $userlink = build_profile_link(htmlspecialchars_uni($results['username']), $results['uid']);
+                $results['userlink'] = build_profile_link(htmlspecialchars_uni($results['username']), $results['uid']);
             }
 
-            $postlink = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
-            $postsubject = htmlspecialchars_uni($results['subject']);
-            $likes = my_number_format((int)$results['likes']);
+            $results['postlink'] = get_post_link($results['pid'], $results['tid'])."#pid".(int)$results['pid'];
+            $results['subject'] = htmlspecialchars_uni($results['subject']);
+            $results['likes'] = my_number_format((int)$results['likes']);
 
             eval("\$rows .= \"".$templates->get("tyltoplist_row")."\";");
             ++$i;
