@@ -2,7 +2,7 @@
 /*
     Main plugin file for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
     Copyright © 2019 Svepu
-    Last change: 2022-01-25 - v2.0
+    Last change: 2022-01-28 - v2.0
 */
 
 if(!defined('IN_MYBB'))
@@ -388,6 +388,7 @@ function tyltoplist_settings()
 function tyltoplist_delete()
 {
     return array(
+        'inc/languages/{lang}/admin/tyltoplist.lang.php',
         'inc/languages/{lang}/admin/config_tyltoplist.lang.php',
         'inc/languages/{lang}/tyltoplist.lang.php',
         'inc/plugins/tyltoplist.php',
@@ -447,10 +448,22 @@ function tyltoplist_stats()
     $tyltoplist = "";
     $tlprefix = $mybb->settings['g33k_thankyoulike_thankslike'] == "thanks" ? $lang->tyltoplist_table_prefix_thanks : $lang->tyltoplist_table_prefix_likes;
 
-    $lang->tyltoplist_header = $db->escape_string($lang->sprintf($lang->tyltoplist_header, (int)$mybb->settings['tyltoplist_limit'], $tlprefix));
+    $content = tyltoplist_build_rows();
+    if(!is_array($content))
+    {
+        return;
+    }
+
+    $counter = $mybb->settings['tyltoplist_limit'];
+    if($content['counter'] && in_array($content['counter'], range(1, $counter)))
+    {
+        $counter = $content['counter'];
+    }
+
+    $lang->tyltoplist_header = $db->escape_string($lang->sprintf($lang->tyltoplist_header, (int)$counter, $tlprefix));
     $lang->tyltoplist_header_desc = $db->escape_string($lang->sprintf($lang->tyltoplist_header_desc, $tlprefix));
 
-    $tlTable = tyltoplist_build_rows();
+    $tlTable = $content['rows'];
 
     switch($mybb->settings['tyltoplist_show'])
     {
@@ -504,15 +517,21 @@ function tyltoplist_build_rows()
         $where .= " AND fid NOT IN ({$mybb->settings['tyltoplist_fids']})";
     }
 
-    $posts = array();
+    $posts = $content = array();
     $query = $db->query("SELECT pid FROM ".TABLE_PREFIX."posts {$where} ORDER BY tyl_pnumtyls DESC, pid ASC LIMIT 0,{$limit}");
     while($post = $db->fetch_array($query))
     {
         $posts[$post['pid']] = $post;
     }
 
+    $content['counter'] = 0;
+
     if(!empty($posts))
     {
+        ksort($posts);
+
+        $content['counter'] = count($posts);
+
         $i = 1;
         $styleclass = $mybb->settings['tyltoplist_show'] == 2 ? ' class="smalltext"' : '';
 
@@ -549,7 +568,9 @@ function tyltoplist_build_rows()
         eval("\$rows = \"".$templates->get("tyltoplist_row_empty")."\";");
     }
 
-    return $rows;
+    $content['rows'] = $rows;
+
+    return $content;
 }
 
 function tyltoplist_online(&$plugin_array)
