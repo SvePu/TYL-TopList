@@ -2,7 +2,7 @@
 /*
 *   Main page for 'TopList AddOn für THX/Like' plugin for MyBB 1.8
 *   Copyright © 2019 Svepu
-*   Last change: 2022-01-28 - v2.0
+*   Last change: 2022-01-31 - v2.0
 */
 
 define("IN_MYBB", 1);
@@ -12,31 +12,31 @@ require_once "./global.php";
 
 $lang->load("tyltoplist");
 
-if($mybb->settings['tyltoplist_enable'] != 1 || $mybb->settings['tyltoplist_fids'] == '-1')
+if ($mybb->settings['tyltoplist_enable'] != 1 || $mybb->settings['tyltoplist_fids'] == '-1')
 {
     error($lang->tyltoplist_disabled, $lang->tyltoplist);
 }
 
-if(!is_member($mybb->settings['tyltoplist_group']))
+if (!is_member($mybb->settings['tyltoplist_group']))
 {
     error_no_permission();
 }
 
-switch($mybb->settings['tyltoplist_show'])
+switch ($mybb->settings['tyltoplist_show'])
 {
     case 1:
-        require_once MYBB_ROOT."inc/plugins/tyltoplist.php";
+        require_once MYBB_ROOT . "inc/plugins/tyltoplist.php";
 
         $tlprefix = $mybb->settings['g33k_thankyoulike_thankslike'] == "thanks" ? $lang->tyltoplist_table_prefix_thanks : $lang->tyltoplist_table_prefix_likes;
 
         $content = tyltoplist_build_rows();
-        if(!is_array($content))
+        if (!is_array($content))
         {
             error();
         }
 
         $counter = $mybb->settings['tyltoplist_limit'];
-        if($content['counter'] && in_array($content['counter'], range(1, $counter)))
+        if ($content['counter'] && in_array($content['counter'], range(1, $counter)))
         {
             $counter = $content['counter'];
         }
@@ -50,7 +50,7 @@ switch($mybb->settings['tyltoplist_show'])
 
         add_breadcrumb($db->escape_string($lang->tyltoplist));
         add_breadcrumb($db->escape_string($lang->sprintf($lang->tyltoplist_header, $mybb->settings['tyltoplist_limit'], $tlprefix)));
-        eval("\$tyltoplist = \"".$templates->get("tyltoplist_page_view")."\";");
+        eval("\$tyltoplist = \"" . $templates->get("tyltoplist_page_view") . "\";");
         output_page($tyltoplist);
         break;
     case 2:
